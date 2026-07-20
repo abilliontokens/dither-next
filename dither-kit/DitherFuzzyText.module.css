@@ -1,0 +1,8 @@
+/* DitherFuzzyText — the fuzz is an SVG displacement filter applied to the
+ * inner span. Under `prefers-reduced-motion: reduce` the filter is dropped so
+ * the text renders crisp. */
+@media (prefers-reduced-motion: reduce) {
+  .ditherFuzzy span[aria-hidden="true"] {
+    filter: none !important;
+  }
+}

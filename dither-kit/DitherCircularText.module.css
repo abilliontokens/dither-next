@@ -1,0 +1,25 @@
+/* DitherCircularText — the SVG rotates as a whole; the text sits on a circular
+ * path. `prefers-reduced-motion: reduce` disables the rotation. */
+.ditherCircularSvg {
+  animation: ditherSpin linear infinite;
+  transform-origin: center;
+}
+
+@keyframes ditherSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.ditherCircularText {
+  fill: currentColor;
+  font-size: 7px;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ditherCircularSvg {
+    animation: none;
+  }
+}

@@ -1,0 +1,83 @@
+/* DitherGlitchText — RGB-split glitch. ::before/::after carry copies of the
+ * text (via `content: attr(data-text)`) clipped and translated on a stepped
+ * loop. The host sets `--dither-glitch-dur` from JS. Under reduced motion the
+ * copies are hidden. */
+.ditherGlitch {
+  position: relative;
+  display: inline-block;
+}
+
+.ditherGlitch::before,
+.ditherGlitch::after {
+  content: attr(data-text);
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  clip-path: inset(0 0 0 0);
+}
+
+.ditherGlitch::before {
+  color: #ff2f6a;
+  animation: ditherGlitchA var(--dither-glitch-dur) steps(2, jump-none) infinite;
+}
+
+.ditherGlitch::after {
+  color: #2fd6ff;
+  animation: ditherGlitchB var(--dither-glitch-dur) steps(2, jump-none) infinite;
+}
+
+@keyframes ditherGlitchA {
+  0%,
+  100% {
+    transform: translate(0);
+    clip-path: inset(0 0 82% 0);
+  }
+  20% {
+    transform: translate(-2px, 1px);
+    clip-path: inset(20% 0 40% 0);
+  }
+  40% {
+    transform: translate(2px, -1px);
+    clip-path: inset(60% 0 8% 0);
+  }
+  60% {
+    transform: translate(-1px, 0);
+    clip-path: inset(35% 0 50% 0);
+  }
+  80% {
+    transform: translate(2px, 1px);
+    clip-path: inset(8% 0 70% 0);
+  }
+}
+
+@keyframes ditherGlitchB {
+  0%,
+  100% {
+    transform: translate(0);
+    clip-path: inset(70% 0 8% 0);
+  }
+  20% {
+    transform: translate(2px, -1px);
+    clip-path: inset(50% 0 30% 0);
+  }
+  40% {
+    transform: translate(-2px, 1px);
+    clip-path: inset(10% 0 60% 0);
+  }
+  60% {
+    transform: translate(1px, 0);
+    clip-path: inset(45% 0 40% 0);
+  }
+  80% {
+    transform: translate(-2px, -1px);
+    clip-path: inset(75% 0 5% 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ditherGlitch::before,
+  .ditherGlitch::after {
+    animation: none;
+    display: none;
+  }
+}

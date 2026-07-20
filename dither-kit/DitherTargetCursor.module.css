@@ -1,0 +1,50 @@
+.target {
+  animation: dither-target-spin 6s linear infinite;
+}
+
+.corner {
+  position: absolute;
+  width: 30%;
+  height: 30%;
+  border: 2px solid currentColor;
+}
+
+.tl {
+  top: 0;
+  left: 0;
+  border-right: 0;
+  border-bottom: 0;
+}
+
+.tr {
+  top: 0;
+  right: 0;
+  border-left: 0;
+  border-bottom: 0;
+}
+
+.bl {
+  bottom: 0;
+  left: 0;
+  border-right: 0;
+  border-top: 0;
+}
+
+.br {
+  bottom: 0;
+  right: 0;
+  border-left: 0;
+  border-top: 0;
+}
+
+@keyframes dither-target-spin {
+  to {
+    rotate: 360deg;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .target {
+    animation: none;
+  }
+}

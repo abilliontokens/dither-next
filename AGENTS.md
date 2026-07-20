@@ -4,18 +4,34 @@
 
 Parallel Next.js port of the Vue 3 `dither-kit` + `src` app. Lives alongside
 the Vue app (which stays the source of truth) and does NOT touch it. The
-engine layer is ported verbatim from `../dither-kit`; all 71 kit components
+engine layer is ported verbatim from `../dither-kit`; all ~179 kit `.tsx`
+components (71 original + ~97 new backgrounds/text-animations/animation-
+effects + chart infrastructure + DitherRadar background + DitherFaultyTerminal)
 and all three app routes (landing, docs, studio) are ported.
-
-## Ownership
 
 - `dither-kit/` — the React kit: framework-agnostic TS (copied verbatim
   from the Vue kit) + Vue-reactivity→React conversions (contexts, hooks,
   controllers, roots, canvas wrappers). Owns its own `package.json` with
   peerDeps (react, d3-scale, d3-shape, clsx, tailwind-merge) so it stays
-  copy-out portable, mirroring the Vue kit's promise. 71 components (+ chart
-    infrastructure) +
-  engine ported.
+  copy-out portable, mirroring the Vue kit's promise. ~179 `.tsx`
+  components (+ chart infrastructure) + engine ported. New component
+  categories ported from the Vue origin:
+  - **Canvas backgrounds** (~52 components): Aurora, Waves, Silk, Plasma,
+    Ferrofluid, DarkVeil, Beams, Lightning, Galaxy, Radar (background),
+    MetaBalls, Noise, Cubes, Ribbons, LaserFlow, etc. — all use the shared
+    `useDitherBackground` hook.
+  - **Text animations** (~23 components): GradientText, ShinyText,
+    GlitchText, CountUp, BlurText, DecryptedText, ScrollVelocity,
+    FuzzyText, AsciiText, CircularText, etc.
+  - **Animation effects** (~22 components): AnimatedContent, FadeContent,
+    GradualBlur, StarBorder, ElectricBorder, GlareHover, StickerPeel,
+    Magnet, ClickSpark, BlobCursor, GhostCursor, Antigravity, LogoLoop,
+    etc.
+  - **Shared runtime**: `useDitherBackground` hook (React port of the Vue
+    composable) — owns the RAF loop, buffer, visibility gate, resize, and
+    dpr scaling for all canvas backgrounds.
+  - **New docs sections**: Backgrounds, Text, Animations (3 new docs pages
+    with 98 new section deep links).
 - `app/` — Next.js App Router routes: `layout.tsx` (root shell +
   `AppProviders`), `page.tsx` (landing), `docs/` (section SSG +
   `generateStaticParams`), `studio/` (client studio).
@@ -85,8 +101,11 @@ and all three app routes (landing, docs, studio) are ported.
 ## Verification
 
 - `cd dither-next && npx tsc --noEmit` green.
-- `cd dither-next && npm run test` — all 20 ported spec files pass (142 tests).
-- `cd dither-next && npm run build` succeeds.
+- `cd dither-next && npm run test` — all 21 spec files pass (147 tests).
+  No new tests were added for the ~97 new components: they are canvas-based
+  and were verified via a live browser smoke test, not unit tests.
+- `cd dither-next && npm run build` succeeds, generating 179 static pages
+  (up from ~80 before the component port).
 - The Vue app (`../dither-kit`, `../src`) is untouched by this workstream.
 
 ## Child DOX Index

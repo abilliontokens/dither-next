@@ -1,0 +1,16 @@
+.loop {
+  animation: dither-loop linear infinite;
+  will-change: transform;
+}
+
+@keyframes dither-loop {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loop {
+    animation: none;
+  }
+}

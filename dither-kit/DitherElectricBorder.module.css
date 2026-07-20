@@ -1,0 +1,7 @@
+/* On reduced motion, drop the turbulence displacement so the border is a
+   plain solid rectangle (no jitter). */
+@media (prefers-reduced-motion: reduce) {
+  .overlay {
+    filter: none !important;
+  }
+}

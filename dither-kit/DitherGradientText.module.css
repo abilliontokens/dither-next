@@ -1,0 +1,22 @@
+/* DitherGradientText — a 90deg gradient clipped to the glyphs and swept across
+ * on an infinite linear loop. `prefers-reduced-motion: reduce` freezes it. */
+.ditherGradientText {
+  display: inline-block;
+  background-size: 300% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: ditherGt linear infinite;
+}
+
+@keyframes ditherGt {
+  to {
+    background-position: 300% center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ditherGradientText {
+    animation: none;
+  }
+}

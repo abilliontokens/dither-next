@@ -15,7 +15,9 @@ import { StructureDocs } from "./components/StructureDocs";
 import { OverlayDocs } from "./components/OverlayDocs";
 import { SurfaceDocs } from "./components/SurfaceDocs";
 import { NavigationDocs } from "./components/NavigationDocs";
-
+import { BackgroundsDocs } from "./backgrounds/BackgroundsDocs";
+import { TextDocs } from "./text/TextDocs";
+import { AnimationsDocs } from "./animations/AnimationsDocs";
 /**
  * DocsSections — the entire docs body, every section pack concatenated on one
  * long scrollable page. Port of `src/pages/docs/DocsPage.vue`, which renders
@@ -57,6 +59,9 @@ export function DocsSections() {
       <OverlayDocs />
       <SurfaceDocs />
       <NavigationDocs />
+      <BackgroundsDocs />
+      <TextDocs />
+      <AnimationsDocs />
       <PaletteSection />
     </>
   );

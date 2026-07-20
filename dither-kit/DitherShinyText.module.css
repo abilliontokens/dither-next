@@ -1,0 +1,30 @@
+/* DitherShinyText — a translucent-white highlight band sweeps across the
+ * glyphs. `prefers-reduced-motion: reduce` drops the animation and shows the
+ * text at a flat translucent white. */
+.ditherShinyText {
+  display: inline-block;
+  color: transparent;
+  background-image: linear-gradient(
+    120deg,
+    rgba(255, 255, 255, 0.35) 40%,
+    #ffffff 50%,
+    rgba(255, 255, 255, 0.35) 60%
+  );
+  background-size: 220% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: ditherShine linear infinite;
+}
+
+@keyframes ditherShine {
+  to {
+    background-position: -220% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ditherShinyText {
+    animation: none;
+    color: rgba(255, 255, 255, 0.8);
+  }
+}

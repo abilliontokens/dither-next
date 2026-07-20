@@ -9,20 +9,20 @@ export type PropRow = { prop: string; type: string; default: string };
 export function PropsTable({ rows }: { rows: PropRow[] }) {
   return (
     <div className="mt-6 overflow-x-auto rounded-lg border border-border/60">
-      <table className="w-full border-collapse text-left text-[11px]">
+      <table className="w-full table-fixed border-collapse text-left text-[11px]">
         <thead>
           <tr className="border-b border-border/60 text-muted-foreground">
-            <th className="px-4 py-2.5 font-medium">Prop</th>
+            <th className="w-1/3 px-4 py-2.5 font-medium">Prop</th>
             <th className="px-4 py-2.5 font-medium">Type</th>
-            <th className="px-4 py-2.5 font-medium">Default</th>
+            <th className="w-1/4 px-4 py-2.5 font-medium">Default</th>
           </tr>
         </thead>
         <tbody>
           {rows.map((r) => (
             <tr key={r.prop} className="border-b border-border/40 last:border-0">
-              <td className="px-4 py-2.5 whitespace-nowrap text-foreground/90">{r.prop}</td>
+              <td className="px-4 py-2.5 align-top break-words text-foreground/90">{r.prop}</td>
               <td className="px-4 py-2.5 text-muted-foreground">{r.type}</td>
-              <td className="px-4 py-2.5 whitespace-nowrap text-muted-foreground">{r.default}</td>
+              <td className="px-4 py-2.5 align-top break-words text-muted-foreground">{r.default}</td>
             </tr>
           ))}
         </tbody>

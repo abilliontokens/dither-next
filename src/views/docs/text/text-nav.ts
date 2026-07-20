@@ -1,0 +1,27 @@
+// Nav items for the text section pack. Verbatim port of
+// src/pages/docs/text/text-nav.ts — section ids are permanent deep links.
+export const TEXT_NAV = [
+  { id: "gradient-text", label: "Gradient text" },
+  { id: "shiny-text", label: "Shiny text" },
+  { id: "glitch-text", label: "Glitch text" },
+  { id: "split-text", label: "Split text" },
+  { id: "rotating-text", label: "Rotating text" },
+  { id: "count-up", label: "Count up" },
+  { id: "text-type", label: "Text type" },
+  { id: "blur-text", label: "Blur text" },
+  { id: "decrypted-text", label: "Decrypted text" },
+  { id: "scramble-text", label: "Scramble text" },
+  { id: "shuffle", label: "Shuffle" },
+  { id: "falling-text", label: "Falling text" },
+  { id: "scroll-reveal", label: "Scroll reveal" },
+  { id: "scroll-float", label: "Scroll float" },
+  { id: "scroll-velocity", label: "Scroll velocity" },
+  { id: "text-cursor", label: "Text cursor" },
+  { id: "text-pressure", label: "Text pressure" },
+  { id: "variable-proximity", label: "Variable proximity" },
+  { id: "true-focus", label: "True focus" },
+  { id: "circular-text", label: "Circular text" },
+  { id: "curved-loop", label: "Curved loop" },
+  { id: "fuzzy-text", label: "Fuzzy text" },
+  { id: "ascii-text", label: "ASCII text" },
+] as const;

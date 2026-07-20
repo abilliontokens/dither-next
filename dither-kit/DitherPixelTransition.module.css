@@ -1,0 +1,13 @@
+.cell {
+  transition: opacity 260ms ease;
+}
+
+.group:hover .cell {
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cell {
+    transition: none;
+  }
+}

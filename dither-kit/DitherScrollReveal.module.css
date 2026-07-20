@@ -1,0 +1,5 @@
+.ditherRevealWord {
+  display: inline-block;
+  white-space: pre;
+  transition: opacity 120ms linear, filter 120ms linear, transform 120ms linear;
+}

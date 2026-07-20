@@ -1,0 +1,9 @@
+/* DitherCurvedLoop — text styling for both the off-canvas measurement text and
+ * the visible scrolling textPath. The scroll itself is driven from JS (RAF
+ * advancing `startOffset`); there is no CSS animation to disable. */
+.ditherCurveText {
+  fill: currentColor;
+  font-size: 15px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}

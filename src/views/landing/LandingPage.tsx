@@ -22,7 +22,7 @@ import {
   cssColor,
   DitherAvatar,
   DitherButton,
-  DitherGradient,
+  DitherDarkVeil,
   type DitherColor,
 } from "@dither-kit";
 import { assetPath, routePath } from "@/shared/lib";
@@ -126,12 +126,15 @@ export function LandingPage() {
 
       {/* Hero: one statement, one action, one visual. */}
       <main className="relative isolate flex flex-1 flex-col overflow-hidden">
-        <DitherGradient
-          from="blue"
-          direction="up"
-          opacity={0.14}
-          cell={8}
-          className="-z-10"
+        {/* Hero backdrop: a dithered dark veil — near-black with faint blue wisps
+             and a vignette. Opaque, so the CTA stays legible with no mask hack. */}
+        <DitherDarkVeil
+          colors={["#05060a", "#0c1730", "#2f6fd0"]}
+          scale={2.6}
+          speed={0.15}
+          intensity={1.5}
+          vignette={0.9}
+          className="pointer-events-none absolute inset-0 -z-10"
         />
         <div className="mx-auto flex w-full max-w-4xl flex-1 flex-col justify-center px-6 pt-24 pb-14 sm:pt-32">
           <h1 className="reveal max-w-xl text-[clamp(1.75rem,4.5vw,2.75rem)] leading-[1.15] tracking-tight text-balance">

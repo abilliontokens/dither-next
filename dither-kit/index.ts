@@ -128,11 +128,15 @@ export {
   rgb,
   rgbToHex,
   rgbToHsv,
+  sampleRgbGradient,
   seedFromColor,
   seedFromHex,
   seedFromHue,
   seedOfColor,
 } from "./palette"
+
+// --- noise (deterministic 2D value-noise / fbm for generative backgrounds) ---
+export { fbm, hash21, valueNoise } from "./noise"
 
 // --- raster ---
 export type { RasterBuffer } from "./raster"
@@ -266,6 +270,117 @@ export {
   paintFaultyTerminal,
 } from "./DitherFaultyTerminal"
 export { DitherSpinner } from "./DitherSpinner"
+
+// --- Canvas backgrounds (generative animated backgrounds) ---
+// Each exports the component + its Params type + its paint function.
+// `DitherSideRays` shares `RaysParams`/`paintRays` with `DitherLightRays`,
+// so only the component is re-exported to avoid duplicate-export conflicts.
+export { DitherAurora, type AuroraParams, paintAurora } from "./DitherAurora"
+export { DitherWaves, type WavesParams, paintWaves } from "./DitherWaves"
+export { DitherSilk, type SilkParams, paintSilk } from "./DitherSilk"
+export { DitherPlasma, type PlasmaParams, paintPlasma } from "./DitherPlasma"
+export { DitherLineWaves, type LineWavesParams, paintLineWaves } from "./DitherLineWaves"
+export { DitherThreads, type ThreadsParams, paintThreads } from "./DitherThreads"
+export { DitherDotGrid, type DotGridParams, paintDotGrid } from "./DitherDotGrid"
+export { DitherRippleGrid, type RippleGridParams, paintRippleGrid } from "./DitherRippleGrid"
+export { DitherIridescence, type IridescenceParams, paintIridescence } from "./DitherIridescence"
+export { DitherPixelSnow, type PixelSnowParams, paintPixelSnow } from "./DitherPixelSnow"
+export { DitherBeams, type BeamsParams, paintBeams } from "./DitherBeams"
+export { DitherGridMotion, type GridMotionParams, paintGridMotion } from "./DitherGridMotion"
+export { DitherGridScan, type GridScanParams, paintGridScan } from "./DitherGridScan"
+export { DitherGridDistortion, type GridDistortionParams, paintGridDistortion } from "./DitherGridDistortion"
+export { DitherLightRays, type RaysParams, paintRays } from "./DitherLightRays"
+export { DitherSideRays } from "./DitherSideRays"
+export { DitherLightPillar, type LightPillarParams, paintLightPillar } from "./DitherLightPillar"
+export { DitherSoftAurora, type SoftAuroraParams, paintSoftAurora } from "./DitherSoftAurora"
+export { DitherDotField, type DotFieldParams, paintDotField } from "./DitherDotField"
+export { DitherColorBends, type ColorBendsParams, paintColorBends } from "./DitherColorBends"
+export { DitherGradientBlinds, type GradientBlindsParams, paintGradientBlinds } from "./DitherGradientBlinds"
+export { DitherGrainient, type GrainientParams, paintGrainient } from "./DitherGrainient"
+export { DitherDither, type DitherBgParams, paintDitherBg } from "./DitherDither"
+export { DitherFloatingLines, type FloatingLinesParams, paintFloatingLines } from "./DitherFloatingLines"
+export { DitherPlasmaWave, type PlasmaWaveParams, paintPlasmaWave } from "./DitherPlasmaWave"
+export { DitherLetterGlitch, type LetterGlitchParams, paintLetterGlitch } from "./DitherLetterGlitch"
+export { DitherShapeGrid, type ShapeGridParams, paintShapeGrid } from "./DitherShapeGrid"
+export { DitherLightning, type LightningParams, paintLightning } from "./DitherLightning"
+export { DitherDarkVeil, type DarkVeilParams, paintDarkVeil } from "./DitherDarkVeil"
+export { DitherLiquidChrome, type LiquidChromeParams, paintLiquidChrome } from "./DitherLiquidChrome"
+export { DitherOrb, type OrbParams, paintOrb } from "./DitherOrb"
+export { DitherPrism, type PrismParams, paintPrism } from "./DitherPrism"
+export { DitherGalaxy, type GalaxyParams, paintGalaxy } from "./DitherGalaxy"
+export { DitherBalatro, type BalatroParams, paintBalatro } from "./DitherBalatro"
+export { DitherBallpit, type BallpitParams, paintBallpit } from "./DitherBallpit"
+export { DitherEvilEye, type EvilEyeParams, paintEvilEye } from "./DitherEvilEye"
+export { DitherHyperspeed, type HyperspeedParams, paintHyperspeed } from "./DitherHyperspeed"
+export { DitherLightfall, type LightfallParams, paintLightfall } from "./DitherLightfall"
+export { DitherPixelBlast, type PixelBlastParams, paintPixelBlast } from "./DitherPixelBlast"
+export { DitherLiquidEther, type LiquidEtherParams, paintLiquidEther } from "./DitherLiquidEther"
+export { DitherParticles, type ParticlesParams, paintParticles } from "./DitherParticles"
+export { DitherFerrofluid, type FerrofluidParams, type FlowDirection, paintFerrofluid } from "./DitherFerrofluid"
+export { DitherPrismaticBurst, type PrismaticBurstParams, paintPrismaticBurst } from "./DitherPrismaticBurst"
+export { DitherMetaBalls, type MetaBallsParams, paintMetaBalls } from "./DitherMetaBalls"
+export { DitherMetallicPaint, type MetallicPaintParams, paintMetallicPaint } from "./DitherMetallicPaint"
+export { DitherNoise, type NoiseParams, paintNoiseField } from "./DitherNoise"
+export { DitherCubes, type CubesParams, paintCubes } from "./DitherCubes"
+export { DitherRibbons, type RibbonsParams, paintRibbons } from "./DitherRibbons"
+export { DitherShapeBlur, type ShapeBlurParams, paintShapeBlur } from "./DitherShapeBlur"
+export { DitherStrands, type StrandsParams, paintStrands } from "./DitherStrands"
+export { DitherLaserFlow, type LaserFlowParams, paintLaserFlow } from "./DitherLaserFlow"
+// NOTE: `DitherRadar` (background) is a SEPARATE export from `./DitherRadar`,
+// distinct from the chart-part `Radar` exported above from `./Radar`.
+export { DitherRadar, type RadarParams, paintRadar } from "./DitherRadar"
+
+// --- useDitherBackground hook (shared RAF canvas hook for backgrounds) ---
+export { useDitherBackground, type DitherBackgroundOptions } from "./use-dither-background"
+
+// --- Text animations ---
+export { DitherGradientText } from "./DitherGradientText"
+export { DitherShinyText } from "./DitherShinyText"
+export { DitherGlitchText } from "./DitherGlitchText"
+export { DitherSplitText } from "./DitherSplitText"
+export { DitherRotatingText } from "./DitherRotatingText"
+export { DitherCountUp } from "./DitherCountUp"
+export { DitherBlurText } from "./DitherBlurText"
+export { DitherDecryptedText } from "./DitherDecryptedText"
+export { DitherScrambleText } from "./DitherScrambleText"
+export { DitherShuffle } from "./DitherShuffle"
+export { DitherTextType } from "./DitherTextType"
+export { DitherFallingText } from "./DitherFallingText"
+export { DitherScrollReveal } from "./DitherScrollReveal"
+export { DitherScrollFloat } from "./DitherScrollFloat"
+export { DitherScrollVelocity } from "./DitherScrollVelocity"
+export { DitherTextCursor } from "./DitherTextCursor"
+export { DitherTextPressure } from "./DitherTextPressure"
+export { DitherVariableProximity } from "./DitherVariableProximity"
+export { DitherTrueFocus } from "./DitherTrueFocus"
+export { DitherCircularText } from "./DitherCircularText"
+export { DitherCurvedLoop } from "./DitherCurvedLoop"
+export { DitherFuzzyText } from "./DitherFuzzyText"
+export { DitherAsciiText } from "./DitherAsciiText"
+
+// --- Animation effects ---
+export { DitherAnimatedContent } from "./DitherAnimatedContent"
+export { DitherFadeContent } from "./DitherFadeContent"
+export { DitherGradualBlur } from "./DitherGradualBlur"
+export { DitherStarBorder } from "./DitherStarBorder"
+export { DitherElectricBorder } from "./DitherElectricBorder"
+export { DitherGlareHover } from "./DitherGlareHover"
+export { DitherMagnet } from "./DitherMagnet"
+export { DitherClickSpark } from "./DitherClickSpark"
+export { DitherBlobCursor } from "./DitherBlobCursor"
+export { DitherCrosshair } from "./DitherCrosshair"
+export { DitherGhostCursor } from "./DitherGhostCursor"
+export { DitherSplashCursor } from "./DitherSplashCursor"
+export { DitherTargetCursor } from "./DitherTargetCursor"
+export { DitherPixelTrail } from "./DitherPixelTrail"
+export { DitherImageTrail } from "./DitherImageTrail"
+export { DitherAntigravity } from "./DitherAntigravity"
+export { DitherLogoLoop } from "./DitherLogoLoop"
+export { DitherMagicRings } from "./DitherMagicRings"
+export { DitherMagnetLines } from "./DitherMagnetLines"
+export { DitherOrbitImages } from "./DitherOrbitImages"
+export { DitherPixelTransition } from "./DitherPixelTransition"
+export { DitherStickerPeel } from "./DitherStickerPeel"
 
 // --- Form controls ---
 export { DitherSwitch } from "./DitherSwitch"

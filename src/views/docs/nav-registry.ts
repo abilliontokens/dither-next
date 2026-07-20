@@ -21,6 +21,9 @@ import { SURFACE_NAV } from "./components/surface-nav";
 import { NAVIGATION_NAV } from "./components/navigation-nav";
 import { AUTH_NAV } from "./examples/auth-nav";
 import { PRODUCT_NAV } from "./examples/product-nav";
+import { BACKGROUNDS_NAV } from "./backgrounds/backgrounds-nav";
+import { TEXT_NAV } from "./text/text-nav";
+import { ANIMATIONS_NAV } from "./animations/animations-nav";
 
 export type NavItem = { id: string; label: string };
 export type NavGroup = { title: string; items: NavItem[] };
@@ -66,7 +69,6 @@ export const GROUPS: NavGroup[] = [
       { id: "avatar", label: "Avatar" },
       { id: "gradient", label: "Gradient" },
       { id: "image", label: "Image" },
-      { id: "faulty-terminal", label: "Faulty terminal" },
       ...FORM_NAV,
       ...FIELD_NAV,
       ...SELECTION_NAV,
@@ -76,6 +78,18 @@ export const GROUPS: NavGroup[] = [
       ...SURFACE_NAV,
       ...NAVIGATION_NAV,
     ],
+  },
+  {
+    title: "Backgrounds",
+    items: [...BACKGROUNDS_NAV],
+  },
+  {
+    title: "Text",
+    items: [...TEXT_NAV],
+  },
+  {
+    title: "Animations",
+    items: [...ANIMATIONS_NAV],
   },
   { title: "Utils", items: [{ id: "palette", label: "Palette" }] },
 ];
