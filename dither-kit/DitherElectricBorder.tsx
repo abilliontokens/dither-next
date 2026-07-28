@@ -2,7 +2,7 @@
 
 import { useId, useMemo } from "react";
 
-import { cn } from "./lib";
+import { cn, sec } from "./lib";
 import styles from "./DitherElectricBorder.module.css";
 
 export interface DitherElectricBorderProps {
@@ -32,7 +32,7 @@ export function DitherElectricBorder({
   // useId returns a string with colons (":r0:") which are invalid in CSS
   // url() references and id selectors; sanitize to a safe id.
   const uid = `dither-electric-${rawId.replace(/:/g, "")}`;
-  const dur = useMemo(() => `${2 / Math.max(0.1, speed)}s`, [speed]);
+  const dur = useMemo(() => sec(2 / Math.max(0.1, speed)), [speed]);
 
   return (
     <div className={cn("relative inline-block rounded-[12px] px-4 py-2", className)}>

@@ -8,6 +8,7 @@ import {
   DitherSeparator,
   DitherSkeleton,
   DitherSpinner,
+  DitherProgressRing,
 } from "@dither-kit";
 import { DemoCard } from "../DemoCard";
 import { PropsTable, type PropRow } from "../PropsTable";
@@ -56,6 +57,20 @@ const SNIPPET_SEPARATOR = `<p>Charts render on canvas.</p>
   <span>studio</span>
 </div>`;
 
+const SNIPPET_PROGRESSRING = `<DitherProgressRing value={level} color="green" label="Rendering" showValue />
+{/* circular progress on canvas · filled arc is a clockwise Bayer ramp ·
+    indeterminate spins a short comet · visibility-gated RAF loop */}`;
+
+const PROGRESSRING_PROPS: PropRow[] = [
+  { prop: "value", type: "number — 0–100", default: "0" },
+  { prop: "indeterminate", type: "boolean", default: "false" },
+  { prop: "size", type: "number (px)", default: "48" },
+  { prop: "thickness", type: "number (px)", default: "—" },
+  { prop: "showValue", type: "boolean", default: "false" },
+  { prop: "label", type: "string", default: "—" },
+  { prop: "color", type: "PixelColor", default: '"blue"' },
+];
+
 const API: Record<string, PropRow[]> = {
   badge: [
     { prop: "color", type: "PixelColor", default: '"blue"' },
@@ -87,6 +102,7 @@ const API: Record<string, PropRow[]> = {
 const SPINNER_COLORS = ["blue", "green", "purple", "orange", "pink", "red"] as const;
 
 export function FeedbackDocs() {
+  const [ringValue, setRingValue] = useState(62);
   const [spinnerSeeds, setSpinnerSeeds] = useState<number[]>([3, 17, 42, 128, 777, 2024]);
   const rerollSpinners = () => {
     setSpinnerSeeds((prev) => prev.map(() => Math.floor(Math.random() * 100000)));
@@ -207,6 +223,30 @@ export function FeedbackDocs() {
         </DemoCard>
         <PropsTable rows={API.separator} />
       </section>
+      {/* Progress ring */}
+      <section id="progress-ring" className="mt-16 scroll-mt-24">
+        <h2 className="text-lg tracking-tight">Progress ring</h2>
+        <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+          A circular progress indicator whose filled arc is an ordered-dither Bayer
+          ramp sweeping clockwise from 12 o&apos;clock. Indeterminate mode spins a short
+          comet arc around the ring; both modes pause off-screen and stop entirely
+          under reduced motion.
+        </p>
+        <DemoCard code={SNIPPET_PROGRESSRING}>
+          <div className="flex flex-col items-center gap-4">
+            <DitherProgressRing value={ringValue} size={120} thickness={8} color="green" label="Rendering" showValue />
+            <button
+              type="button"
+              className="rounded border border-border/60 px-2 py-1 text-[11px] text-muted-foreground transition-colors hover:text-foreground"
+              onClick={() => setRingValue((v) => (v + 7) % 101)}
+            >
+              bump
+            </button>
+          </div>
+        </DemoCard>
+        <PropsTable rows={PROGRESSRING_PROPS} />
+      </section>
+
     </>
   );
 }

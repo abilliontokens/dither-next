@@ -43,6 +43,37 @@ function setModel(value: unknown): void {
   });
 }
 
+/** Demo content for the `compare` studio demo: two full-bleed panels that read
+ *  differently so dragging the divider is obvious. before = flat tint, after =
+ *  a dither-stripe pattern (the kit texture, not a photo). */
+const COMPARE_BEFORE = (
+  <div className="grid h-full w-full place-items-center rounded-lg bg-card text-[11px] font-mono text-muted-foreground">
+    before · flat
+  </div>
+);
+const COMPARE_AFTER = (
+  <div
+    className="grid h-full w-full place-items-center rounded-lg text-[11px] font-mono text-background"
+    style={{ backgroundImage: "repeating-linear-gradient(45deg, #358ff3 0 4px, #1e293b 4px 8px)" }}
+  >
+    after · dithered
+  </div>
+);
+
+/** Demo content for the `masonry` studio demo: eight varied-height cards so the
+ *  waterfall actually demonstrates the measured column layout. */
+const MASONRY_DEMO_CARDS = ["Alpha", "Beta", "Gamma", "Delta", "Epsilon", "Zeta", "Eta", "Theta"].map(
+  (label, i) => (
+    <div
+      key={label}
+      className="flex items-end rounded-lg border border-border/60 bg-card p-3 text-[11px] font-mono text-muted-foreground"
+      style={{ minHeight: 56 + (i % 3) * 40 }}
+    >
+      {label}
+    </div>
+  ),
+);
+
 /**
  * WidgetRenderer — renders a widget by kind. Verbatim port of
  * `src/widgets/widget-renderer/WidgetRenderer.vue`. Avatar/button/image/
@@ -220,6 +251,12 @@ export function WidgetRenderer({ widget, artboardId }: WidgetRendererProps) {
               Drawer content
             </DitherDrawer>
           </>
+        ) : demo === "compare" ? (
+          <Generic {...compProps} className="h-full w-full" before={COMPARE_BEFORE} after={COMPARE_AFTER} />
+        ) : demo === "masonry" ? (
+          <Generic {...compProps} className="w-full">
+            {MASONRY_DEMO_CARDS}
+          </Generic>
         ) : null}
       </div>
     );

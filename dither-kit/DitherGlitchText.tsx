@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 
-import { cn } from "./lib";
+import { cn, sec } from "./lib";
 import styles from "./DitherGlitchText.module.css";
 
 /**
@@ -23,7 +23,7 @@ export function DitherGlitchText({
   className,
 }: DitherGlitchTextProps) {
   const dur = useMemo(
-    () => `${Math.max(0.3, 2.5 / Math.max(0.01, speed))}s`,
+    () => sec(Math.max(0.3, 2.5 / Math.max(0.01, speed))),
     [speed],
   );
 

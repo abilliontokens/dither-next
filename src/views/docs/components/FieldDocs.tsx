@@ -8,6 +8,7 @@ import {
   DitherFieldset,
   DitherForm,
   DitherInput,
+  DitherMarkdownEditor,
   DitherNumberField,
   DitherOtpField,
   DitherTextarea,
@@ -139,6 +140,19 @@ const API: Record<string, PropRow[]> = {
   ],
 };
 
+const SNIPPET_MARKDOWNEDITOR = `<DitherMarkdownEditor value={md} onChange={setMd} color="blue" />
+{/* split-pane editor · textarea left, live preview right · caret line wears a Bayer
+    wash · keyboard shortcuts for bold/italic/code/link · custom preview renderer */}`;
+
+const MARKDOWNEDITOR_PROPS: PropRow[] = [
+  { prop: "value", type: "string", default: "required" },
+  { prop: "onChange", type: "(value: string) => void", default: "required" },
+  { prop: "preview", type: "(markdown: string) => ReactNode", default: "built-in" },
+  { prop: "color / seed", type: "PixelColor / number", default: '"blue" / —' },
+];
+
+const EDITOR_DEFAULT = "# Dither\n\nA **markdown** editor with a live preview.\n\n- type on the left\n- read on the right\n\nInline `code`.";
+
 export function FieldDocs() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("not-an-email");
@@ -152,6 +166,7 @@ export function FieldDocs() {
   const [qty, setQty] = useState(3);
   const [otp, setOtp] = useState("");
   const [otpComplete, setOtpComplete] = useState(false);
+  const [markdown, setMarkdown] = useState(EDITOR_DEFAULT);
 
   return (
     <>
@@ -288,6 +303,24 @@ export function FieldDocs() {
         </DemoCard>
         <PropsTable rows={API.otpField} />
       </section>
+      {/* Markdown editor */}
+      <section id="markdown-editor" className="mt-16 scroll-mt-24">
+        <h2 className="text-lg tracking-tight">Markdown editor</h2>
+        <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+          A split-pane markdown editor: a textarea on the left, a live preview on the
+          right. The active caret line wears a faint Bayer wash (the kit&apos;s
+          texture, not a flat highlight), keyboard shortcuts apply bold/italic/code/
+          link, and an optional <code className="text-foreground/80">preview</code>{" "}
+          renderer swaps the built-in preview for your own.
+        </p>
+        <DemoCard code={SNIPPET_MARKDOWNEDITOR}>
+          <div className="mx-auto max-w-2xl text-left">
+            <DitherMarkdownEditor value={markdown} onChange={setMarkdown} color="blue" />
+          </div>
+        </DemoCard>
+        <PropsTable rows={MARKDOWNEDITOR_PROPS} />
+      </section>
+
     </>
   );
 }

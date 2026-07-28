@@ -1,0 +1,34 @@
+/* DitherSpotlight - the dim overlay and glow sit above the content. The
+ * background is set imperatively from the RAF loop via the CSS custom
+ * properties' inline `style.background`, so the module only owns positioning
+ * and blend modes. `prefers-reduced-motion: reduce` drops the overlay
+ * transition; `prefers-reduced-transparency: reduce` hides the dim layer. */
+.overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: transparent;
+  transition: background 0.2s ease;
+  mix-blend-mode: multiply;
+}
+
+.glow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: none;
+  mix-blend-mode: screen;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .overlay,
+  .glow {
+    transition: none;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .overlay {
+    opacity: 0;
+  }
+}

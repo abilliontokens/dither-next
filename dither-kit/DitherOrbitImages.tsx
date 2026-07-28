@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 
-import { cn } from "./lib";
+import { cn, px } from "./lib";
 import styles from "./DitherOrbitImages.module.css";
 
 export interface DitherOrbitImagesProps {
@@ -52,7 +52,7 @@ export function DitherOrbitImages({
             key={i}
             className="absolute left-1/2 top-1/2 grid h-9 w-9 place-items-center rounded-full border border-border/60 bg-card text-xs"
             style={{
-              transform: `translate(-50%, -50%) translate(${p.x}px, ${p.y}px)`,
+              transform: `translate(-50%, -50%) translate(${px(p.x)}, ${px(p.y)})`,
             }}
           >
             <span

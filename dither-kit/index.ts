@@ -228,7 +228,7 @@ export { useChartDimensions, type Dimensions } from "./use-chart-dimensions"
 export { useCanvasVisibility } from "./use-visibility"
 
 // --- lib ---
-export { cn } from "./lib"
+export { cn, round, px, ms, sec, deg, em } from "./lib"
 
 // =========================================================================
 // Component exports — grouped to mirror the Vue `dither-kit/index.ts` barrel.
@@ -415,11 +415,13 @@ export { DitherMenubar, type MenubarItem, type MenubarMenu } from "./DitherMenub
 export { DitherTooltip } from "./DitherTooltip"
 export { DitherPreviewCard } from "./DitherPreviewCard"
 export { DitherDialog } from "./DitherDialog"
+export { DitherCenterMorphModal } from "./DitherCenterMorphModal"
 export { DitherAlertDialog } from "./DitherAlertDialog"
 export { DitherDrawer, type DrawerSide } from "./DitherDrawer"
 export { DitherDrawerIndent } from "./DitherDrawerIndent"
 export { DitherSwipeArea } from "./DitherSwipeArea"
 export { DitherAccordion, type AccordionItem } from "./DitherAccordion"
+export { DitherBouncyAccordion, type BouncyItem } from "./DitherBouncyAccordion"
 export { DitherToaster } from "./DitherToaster"
 export { DitherScrollArea } from "./DitherScrollArea"
 
@@ -439,6 +441,7 @@ export { DitherAutocomplete } from "./DitherAutocomplete"
 export { DitherRadioGroup } from "./DitherRadioGroup"
 export { DitherToggle } from "./DitherToggle"
 export { DitherToggleGroup } from "./DitherToggleGroup"
+export { DitherWheelPicker, type WheelOption } from "./DitherWheelPicker"
 
 // --- Surfaces & status ---
 export {
@@ -453,3 +456,112 @@ export { DitherSidebarSub } from "./DitherSidebarSub"
 export { DitherNavMenu, type NavMenuItem } from "./DitherNavMenu"
 export { DitherToolbar } from "./DitherToolbar"
 export { DitherMeter } from "./DitherMeter"
+export { DitherShell } from "./DitherShell"
+export { DitherRail } from "./DitherRail"
+export { DitherConsole, type ConsoleLevel, type ConsoleLine } from "./DitherConsole"
+export { DitherCanvas } from "./DitherCanvas"
+
+// --- Generative canvas effects (seeded) ---
+export { DitherPulseField, type PulseParams } from "./DitherPulseField"
+export { DitherPixelFlood } from "./DitherPixelFlood"
+export { DitherParticleBurst, type DitherParticleBurstHandle } from "./DitherParticleBurst"
+export { DitherTypeStream } from "./DitherTypeStream"
+export { DitherSpotlight } from "./DitherSpotlight"
+export { DitherMagnetic } from "./DitherMagnetic"
+export { DitherTilt } from "./DitherTilt"
+export { DitherDissolve, type DitherDissolveHandle } from "./DitherDissolve"
+export { DitherGlyphTrail } from "./DitherGlyphTrail"
+export { DitherScanProgress } from "./DitherScanProgress"
+
+// --- Newer interactive components (ported from the Vue kit) ---
+export { DitherNumberFlow } from "./DitherNumberFlow"
+export { DitherExpandTabs, type ExpandTab } from "./DitherExpandTabs"
+export { DitherIsland } from "./DitherIsland"
+export { DitherCardStack } from "./DitherCardStack"
+export { DitherScrollProgress } from "./DitherScrollProgress"
+export { DitherDock, type DockItem } from "./DitherDock"
+export { DitherPreviewRail, type PreviewRailItem } from "./DitherPreviewRail"
+export { DitherCommand, type CommandItem } from "./DitherCommand"
+export { DitherVideoPlayer } from "./DitherVideoPlayer"
+export { DitherBracket, type BracketMatch } from "./DitherBracket"
+export { DitherSchedule, type ScheduleEvent } from "./DitherSchedule"
+export { DitherInfiniteCanvas } from "./DitherInfiniteCanvas"
+export { DitherSnapButton } from "./DitherSnapButton"
+export { DitherExpandingArrow } from "./DitherExpandingArrow"
+export { DitherSlideAction } from "./DitherSlideAction"
+export { DitherHoldAction } from "./DitherHoldAction"
+export { DitherWalletCard, type WalletAccount, type WalletAction } from "./DitherWalletCard"
+export { DitherNotificationStack, type NotificationItem, type NotificationStackVariant } from "./DitherNotificationStack"
+export { DitherGooeyMenu, type GooeyItem } from "./DitherGooeyMenu"
+
+// --- dither-next-exclusive components (no Vue origin) ---
+// Workspace / structure
+export { DitherTreeView, type TreeViewNode } from "./DitherTreeView"
+export { DitherSplitPane } from "./DitherSplitPane"
+export { DitherKanban, type KanbanColumn } from "./DitherKanban"
+export { DitherMiniMap } from "./DitherMiniMap"
+// Data
+export { DitherHeatCalendar, type DitherHeatValue } from "./DitherHeatCalendar"
+export { DitherGauge, type DitherGaugeSegment } from "./DitherGauge"
+// Inputs / fields
+export { DitherColorPicker } from "./DitherColorPicker"
+export { DitherTagInput } from "./DitherTagInput"
+export { DitherTerminalPrompt } from "./DitherTerminalPrompt"
+// Overlays
+export { DitherRadialMenu, type RadialItem } from "./DitherRadialMenu"
+// Media
+export { DitherAudioWave } from "./DitherAudioWave"
+// Navigation
+export { DitherCarousel } from "./DitherCarousel"
+
+// --- dither-next-exclusive components, batch 2 (no Vue origin) ---
+// Inputs
+export { DitherDatePicker, type DateISO, type DateSingleValue, type DateRangeValue, type DateValue, type DatePickerMode, type DitherDatePickerProps } from "./DitherDatePicker"
+export { DitherRangeSlider, type DitherRangeSliderProps } from "./DitherRangeSlider"
+export { DitherSegmented, type SegmentItem, type DitherSegmentedProps } from "./DitherSegmented"
+export { DitherTimePicker, type TimeValue, type DitherTimePickerProps } from "./DitherTimePicker"
+export { DitherDropzone, type DitherDropzoneProps } from "./DitherDropzone"
+export { DitherSignaturePad, type DitherSignaturePadProps } from "./DitherSignaturePad"
+// Display / data
+export { DitherProgressRing, type DitherProgressRingProps } from "./DitherProgressRing"
+export { DitherDataTable, type TableColumn, type DitherDataTableProps, type SortDir, type SortState } from "./DitherDataTable"
+export { DitherCodeBlock, type DitherCodeBlockProps } from "./DitherCodeBlock"
+export { DitherTicker, type TickerDirection, type DitherTickerProps } from "./DitherTicker"
+// Overlays
+export { DitherBottomSheet, type DitherBottomSheetProps } from "./DitherBottomSheet"
+export { DitherHoverCard, type HoverCardSide, type HoverCardAlign, type DitherHoverCardProps } from "./DitherHoverCard"
+// Structure
+export { DitherVirtualList, type DitherVirtualListProps } from "./DitherVirtualList"
+
+// --- dither-next-exclusive components, batch 3 (no Vue origin) ---
+// Display / data
+export { DitherDiffViewer, type DitherDiffViewerProps } from "./DitherDiffViewer"
+export { DitherJsonTree, type DitherJsonTreeProps } from "./DitherJsonTree"
+export { DitherCompare, type DitherCompareProps } from "./DitherCompare"
+// Structure
+export { DitherFlow, type DitherFlowProps, type DitherFlowNode, type DitherFlowEdge } from "./DitherFlow"
+export { DitherMasonry, type DitherMasonryProps } from "./DitherMasonry"
+// Navigation
+export { DitherOutline, type DitherOutlineProps, type DitherOutlineItem } from "./DitherOutline"
+// Inputs
+export { DitherImageCropper, type DitherImageCropperProps, type DitherImageCropperHandle, type CropRect } from "./DitherImageCropper"
+export { DitherMentionInput, type DitherMentionInputProps, type DitherMentionOption } from "./DitherMentionInput"
+export { DitherShortcutRecorder, type DitherShortcutRecorderProps } from "./DitherShortcutRecorder"
+// Overlays
+export { DitherTour, type DitherTourProps, type DitherTourStep } from "./DitherTour"
+
+// --- dither-next-exclusive components, batch 4 (no Vue origin) ---
+// Display / data
+export { DitherCalendarGrid, type DitherCalendarEvent, type DitherCalendarGridProps } from "./DitherCalendarGrid"
+export { DitherSpreadsheet, type DitherSpreadsheetCell, type DitherSpreadsheetProps } from "./DitherSpreadsheet"
+export { DitherMarkdownRender, type MarkdownComponents, type DitherMarkdownRenderProps } from "./DitherMarkdownRender"
+// Structure
+export { DitherOrgChart, type DitherOrgNode, type DitherOrgChartProps } from "./DitherOrgChart"
+// Inputs
+export { DitherMarkdownEditor, type DitherMarkdownEditorProps } from "./DitherMarkdownEditor"
+export { DitherQueryBuilder, type DitherQueryFieldType, type DitherQueryField, type DitherQueryRule, type DitherQueryCombinator, type DitherQueryBuilderProps } from "./DitherQueryBuilder"
+export { DitherColorPalette, type DitherSwatch, type DitherColorPaletteProps } from "./DitherColorPalette"
+export { DitherFilterChip, type DitherFilterOption, type DitherFilterChipProps } from "./DitherFilterChip"
+export { DitherSlider2D, type DitherSlider2DValue, type DitherSlider2DProps } from "./DitherSlider2D"
+// Overlays
+export { DitherCommandQueue, type QueueVariant, type QueuePosition, type QueueAction, type QueueToast, type DitherCommandQueueProps } from "./DitherCommandQueue"

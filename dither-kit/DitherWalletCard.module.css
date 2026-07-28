@@ -1,0 +1,42 @@
+/* Transitions + digit rise for DitherWalletCard — verbatim timing/keyframes
+ * from the Vue `<style scoped>`. The balance digit rise (260ms) replays per
+ * digit via React `key` changes (account/hidden/index/char); the account +
+ * search morphs are 160ms opacity+scale mount/unmount via `usePresence`. */
+.digit {
+  animation: dk-wc-rise 260ms cubic-bezier(0.2, 0, 0, 1) both;
+}
+.morphEnter {
+  animation: dk-wc-morph 160ms cubic-bezier(0.2, 0, 0, 1) both;
+}
+.morphLeave {
+  animation: dk-wc-morph 160ms cubic-bezier(0.2, 0, 0, 1) reverse both;
+}
+@keyframes dk-wc-rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes dk-wc-morph {
+  from {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .digit {
+    animation: none;
+  }
+  .morphEnter,
+  .morphLeave {
+    animation: none;
+  }
+}

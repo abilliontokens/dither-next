@@ -4,6 +4,8 @@ import { useState } from "react";
 
 import {
   DitherBreadcrumb,
+  DitherCarousel,
+  DitherOutline,
   DitherPagination,
   DitherRating,
   DitherStepper,
@@ -52,6 +54,13 @@ const SNIPPET_TIMELINE = `<DitherTimeline
   ]}
 />`;
 
+const SNIPPET_CAROUSEL = `<DitherCarousel color="green" loop autoplay interval={4000} label="Showcase">
+  <img src="/prints.webp" alt="Prints" />
+  <img src="/frames.webp" alt="Frames" />
+  <img src="/zines.webp" alt="Zines" />
+</DitherCarousel>
+{/* scroll-snap track · mouse drag with flick landing · dithered pagination */}`;
+
 const API: Record<string, PropRow[]> = {
   breadcrumb: [
     { prop: "items", type: "{ label; href? }[]", default: "—" },
@@ -79,6 +88,15 @@ const API: Record<string, PropRow[]> = {
     { prop: "items", type: "{ title; time?; body?; color? }[]", default: "—" },
     { prop: "dotSize", type: "number (px)", default: "12" },
   ],
+  carousel: [
+    { prop: "children", type: "slides (each wrapped role=group)", default: "—" },
+    { prop: "index", type: "number (controlled)", default: "internal" },
+    { prop: "loop", type: "boolean — wrap at the ends", default: "false" },
+    { prop: "autoplay", type: "boolean — pauses on hover/focus", default: "false" },
+    { prop: "interval", type: "number (ms)", default: "4000" },
+    { prop: "color", type: "PixelColor — pagination dots", default: '"blue"' },
+    { prop: "label", type: "string — region name", default: '"Carousel"' },
+  ],
 };
 
 const BREADCRUMB_ITEMS = [
@@ -102,6 +120,25 @@ const TIMELINE_ITEMS = [
 ];
 
 const SEED_COLORS = ["orange", "pink", "purple", "green"] as const;
+
+const SNIPPET_OUTLINE = `<DitherOutline items={items} offset={80} color="blue" />
+{/* scroll-spy TOC · each item.id resolves to a heading · active row drives a
+    downward-fading Bayer progress rail · click/Enter to smooth-scroll */}`;
+
+const OUTLINE_PROPS: PropRow[] = [
+  { prop: "items", type: "DitherOutlineItem[] — { id, label, depth? }", default: "required" },
+  { prop: "offset", type: "number (px) — scroll + active offset", default: "0" },
+  { prop: "onNavigate", type: "(id: string) => void", default: "—" },
+  { prop: "color / seed", type: "PixelColor / number", default: '"blue" / —' },
+];
+
+const OUTLINE_ITEMS = [
+  { id: "ov-getting-started", label: "Quick start" },
+  { id: "ov-styling", label: "Styling" },
+  { id: "ov-seeds", label: "Seeds" },
+  { id: "ov-motion", label: "Animation" },
+  { id: "ov-a11y", label: "Accessibility" },
+];
 
 export function NavigationDocs() {
   const [page, setPage] = useState(3);
@@ -225,6 +262,46 @@ export function NavigationDocs() {
         </DemoCard>
         <PropsTable rows={API.timeline} />
       </section>
+      <section id="carousel" className="mt-16 scroll-mt-24">
+        <h2 className="text-lg tracking-tight">Carousel</h2>
+        <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+          A snap carousel — a CSS scroll-snap track (one slide per view) with mouse
+          pointer-drag, velocity-projected flick landing, dithered pixel-square
+          pagination, and prev/next controls. Autoplay pauses on hover/focus and stops
+          entirely under reduced motion; touch stays native.
+        </p>
+        <DemoCard code={SNIPPET_CAROUSEL}>
+          <div className="mx-auto max-w-md">
+            <DitherCarousel color="green" loop autoplay interval={4000} label="Showcase">
+              {["Prints", "Frames", "Zines"].map((s) => (
+                <div key={s} className="grid h-40 w-full place-items-center rounded-lg border border-border/60 bg-card text-sm text-muted-foreground">
+                  {s}
+                </div>
+              ))}
+            </DitherCarousel>
+          </div>
+        </DemoCard>
+        <PropsTable rows={API.carousel} />
+      </section>
+
+      {/* Outline */}
+      <section id="outline" className="mt-16 scroll-mt-24">
+        <h2 className="text-lg tracking-tight">Outline</h2>
+        <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+          A scroll-spy table of contents. Each <code className="text-foreground/80">item.id</code>{" "}
+          is resolved to a heading in the document, the active row drives a
+          downward-fading Bayer progress rail, and clicking or pressing Enter
+          smooth-scrolls to that heading. The progress rail grows with scroll
+          position so the reader always sees how far the page goes.
+        </p>
+        <DemoCard code={SNIPPET_OUTLINE}>
+          <div className="mx-auto max-w-xs">
+            <DitherOutline items={OUTLINE_ITEMS} color="blue" />
+          </div>
+        </DemoCard>
+        <PropsTable rows={OUTLINE_PROPS} />
+      </section>
+
     </>
   );
 }

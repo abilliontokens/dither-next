@@ -4,26 +4,30 @@
 
 Parallel Next.js port of the Vue 3 `dither-kit` + `src` app. Lives alongside
 the Vue app (which stays the source of truth) and does NOT touch it. The
-engine layer is ported verbatim from `../dither-kit`; all ~179 kit `.tsx`
-components (71 original + ~97 new backgrounds/text-animations/animation-
-effects + chart infrastructure + DitherRadar background + DitherFaultyTerminal)
-and all three app routes (landing, docs, studio) are ported.
+engine layer is ported verbatim from `../dither-kit`; 260 kit `.tsx`
+components (71 original + 99 new backgrounds/text-animations/animation-
+effects + 10 generative effects + chart infrastructure + DitherRadar +
+DitherFaultyTerminal + 38 ported interactive components + 45
+dither-next-exclusive components with no Vue origin) and all three app
+routes (landing, docs, studio) are ported. The kit matches the Vue kit
+component-for-component and leads it by those 45 exclusive components — all
+wired into the public barrel, the studio registry, and the docs.
 
 - `dither-kit/` — the React kit: framework-agnostic TS (copied verbatim
   from the Vue kit) + Vue-reactivity→React conversions (contexts, hooks,
   controllers, roots, canvas wrappers). Owns its own `package.json` with
   peerDeps (react, d3-scale, d3-shape, clsx, tailwind-merge) so it stays
-  copy-out portable, mirroring the Vue kit's promise. ~179 `.tsx`
+  copy-out portable, mirroring the Vue kit's promise. 260 `.tsx`
   components (+ chart infrastructure) + engine ported. New component
   categories ported from the Vue origin:
-  - **Canvas backgrounds** (~52 components): Aurora, Waves, Silk, Plasma,
+  - **Canvas backgrounds** (52 components): Aurora, Waves, Silk, Plasma,
     Ferrofluid, DarkVeil, Beams, Lightning, Galaxy, Radar (background),
     MetaBalls, Noise, Cubes, Ribbons, LaserFlow, etc. — all use the shared
     `useDitherBackground` hook.
-  - **Text animations** (~23 components): GradientText, ShinyText,
+  - **Text animations** (24 components): GradientText, ShinyText,
     GlitchText, CountUp, BlurText, DecryptedText, ScrollVelocity,
     FuzzyText, AsciiText, CircularText, etc.
-  - **Animation effects** (~22 components): AnimatedContent, FadeContent,
+  - **Animation effects** (23 components): AnimatedContent, FadeContent,
     GradualBlur, StarBorder, ElectricBorder, GlareHover, StickerPeel,
     Magnet, ClickSpark, BlobCursor, GhostCursor, Antigravity, LogoLoop,
     etc.
@@ -47,8 +51,18 @@ and all three app routes (landing, docs, studio) are ported.
   (via `@tailwindcss/postcss`), d3-scale, d3-shape, clsx, tailwind-merge.
 - Aliases: `@/*` → `./src/*`, `@dither-kit` → `./dither-kit/index.ts`,
   `@dither-kit/*` → `./dither-kit/*` (tsconfig paths).
-- Scripts: `dev` (next dev), `build` (next build), `start`, `lint`,
-  `typecheck` (`tsc --noEmit`), `test` (`vitest run`), `test:watch` (`vitest`).
+- Scripts: `dev` (`next dev --turbopack`), `build` (next build), `start`,
+  `lint`, `typecheck` (`tsc --noEmit`), `test` (`vitest run`), `test:watch`
+  (`vitest`).
+- Dev MUST run under Turbopack. Next 15.5.20's webpack dev server never writes
+  `.next/routes-manifest.json`, and the App Router request path for
+  `/docs/[section]` (`generateStaticParams` + `dynamicParams = false`) reads
+  it — every route 500s with `ENOENT routes-manifest.json` after the first
+  request or two. Turbopack dev is unaffected. `build` stays on webpack, so
+  production output is unchanged.
+- Never run `next build` against a tree with a live `next dev` (or vice
+  versa): both own `.next/`, and the build wipes the manifests out from under
+  the running server. Use `-p` to separate ports, never to share `.next`.
 - `html-to-image` is a declared dep (studio PNG export); only reached on user
   action, no bundle bloat for non-studio routes.
 - Tests: Vitest + @testing-library/react + jsdom, mirroring the Vue tree's
@@ -101,11 +115,14 @@ and all three app routes (landing, docs, studio) are ported.
 ## Verification
 
 - `cd dither-next && npx tsc --noEmit` green.
-- `cd dither-next && npm run test` — all 21 spec files pass (147 tests).
-  No new tests were added for the ~97 new components: they are canvas-based
+- `cd dither-next && npm run test` — all 22 spec files pass (152 tests).
+  No new tests were added for the 99 new components: they are canvas-based
   and were verified via a live browser smoke test, not unit tests.
-- `cd dither-next && npm run build` succeeds, generating 179 static pages
-  (up from ~80 before the component port).
+- `cd dither-next && npm run build` succeeds; the docs route statically
+  generates one page per section id (264 deep links) plus `/` and `/studio`.
+- `npm run dev` serves every route under Turbopack: `/`, `/studio` and all
+  264 `/docs/<section>` ids return 200, an unknown section returns 404
+  (`dynamicParams = false`). A run of webpack `next dev` instead 500s.
 - The Vue app (`../dither-kit`, `../src`) is untouched by this workstream.
 
 ## Child DOX Index

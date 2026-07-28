@@ -1,0 +1,46 @@
+/* Transitions for DitherCenterMorphModal — verbatim timing/keyframes from the
+ * Vue `<style scoped>`. CSS animations (not transitions) drive enter/leave so
+ * the enter plays on mount; the node stays mounted via `usePresence` while the
+ * leave runs, then unmounts. The backdrop opacity and the panel clip-path
+ * unfold run on independent timings exactly as in Vue. */
+.enter {
+  animation: dk-cmm-fade 480ms cubic-bezier(0.76, 0, 0.24, 1) both;
+}
+.leave {
+  animation: dk-cmm-fade 220ms ease 200ms reverse both;
+}
+.enter .panel {
+  animation: dk-cmm-unfold 480ms cubic-bezier(0.76, 0, 0.24, 1) both;
+}
+.leave .panel {
+  animation: dk-cmm-unfold 400ms cubic-bezier(0.76, 0, 0.24, 1) reverse both;
+}
+@keyframes dk-cmm-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes dk-cmm-unfold {
+  0% {
+    clip-path: inset(50% round 0.75rem);
+  }
+  46% {
+    clip-path: inset(calc(50% - 1px) 0 round 0.75rem);
+  }
+  100% {
+    clip-path: inset(0 round 0.75rem);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .enter,
+  .leave {
+    animation: none;
+  }
+  .enter .panel,
+  .leave .panel {
+    animation: none;
+  }
+}

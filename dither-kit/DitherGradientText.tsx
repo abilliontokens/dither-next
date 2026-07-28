@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 
-import { cn } from "./lib";
+import { cn, sec } from "./lib";
 import styles from "./DitherGradientText.module.css";
 
 /**
@@ -29,7 +29,7 @@ export function DitherGradientText({
     [colors],
   );
   const dur = useMemo(
-    () => `${Math.max(0.2, 6 / Math.max(0.01, speed))}s`,
+    () => sec(Math.max(0.2, 6 / Math.max(0.01, speed))),
     [speed],
   );
 

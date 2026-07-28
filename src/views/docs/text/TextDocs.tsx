@@ -13,6 +13,7 @@ import {
   DitherFuzzyText,
   DitherGlitchText,
   DitherGradientText,
+  DitherNumberFlow,
   DitherRotatingText,
   DitherScrambleText,
   DitherScrollFloat,
@@ -149,6 +150,12 @@ const API: Record<string, PropRow[]> = {
     { prop: "text", type: "string", default: '"DITHER"' },
     { prop: "cols", type: "number", default: "64" },
   ],
+  numberFlow: [
+    { prop: "value", type: "number", default: "required" },
+    { prop: "decimals", type: "number", default: "0" },
+    { prop: "duration", type: "number (ms) — roll time per change", default: "600" },
+    { prop: "className", type: "string", default: "undefined" },
+  ],
 };
 
 const SNIPPETS = {
@@ -160,6 +167,8 @@ const SNIPPETS = {
   splitText: `<DitherSplitText text="Split into characters" replayToken={token} />`,
   rotatingText: `Built for <DitherRotatingText texts={['Vue', 'canvas', 'the studio']} />`,
   countUp: `<DitherCountUp to={1984} /> renders {/* counts up when scrolled into view */}`,
+  numberFlow: `<DitherNumberFlow value={metric} />  {/* digits roll on every change */}
+<DitherNumberFlow value={price} decimals={2} duration={400} />`,
   textType: `<DitherTextType texts={['Charts, dithered.', 'Buttons, dithered.', 'Everything, dithered.']} />`,
   blurText: `<DitherBlurText text="Blur into focus" by="words" />`,
   decryptedText: `<DitherDecryptedText text="ACCESS GRANTED" />`,
@@ -180,6 +189,10 @@ const SNIPPETS = {
 };
 
 export function TextDocs() {
+  const [flowValue, setFlowValue] = useState(12480);
+  function bumpFlow() {
+    setFlowValue((v) => v + Math.round(Math.random() * 900 - 300));
+  }
   const [splitReplay, setSplitReplay] = useState(0);
   const [shuffleReplay, setShuffleReplay] = useState(0);
   const [fallingReplay, setFallingReplay] = useState(0);
@@ -290,6 +303,29 @@ export function TextDocs() {
       </section>
 
       {/* Text type */}
+      <section id="number-flow" className="mt-16 scroll-mt-24">
+        <h2 className="text-lg tracking-tight">Number flow</h2>
+        <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+          An odometer for live values — every digit rides a 0-9 column that rolls to the
+          new figure whenever <code className="text-foreground/80">value</code> changes.
+          Count up plays once; this one never stops. Reduced motion snaps.
+        </p>
+        <DemoCard code={SNIPPETS.numberFlow}>
+          <div className="flex min-h-24 items-center justify-center gap-3 text-4xl tracking-tight">
+            <span className="text-2xl text-muted-foreground" aria-hidden="true">$</span>
+            <DitherNumberFlow value={flowValue} />
+            <button
+              type="button"
+              className="rounded border border-border/60 px-2 py-1 text-[11px] text-muted-foreground transition-colors hover:text-foreground"
+              onClick={bumpFlow}
+            >
+              bump
+            </button>
+          </div>
+        </DemoCard>
+        <PropsTable rows={API.numberFlow} />
+      </section>
+
       <section id="text-type" className="mt-16 scroll-mt-24">
         <h2 className="text-lg tracking-tight">Text type</h2>
         <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">

@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 
-import { cn } from "./lib";
+import { cn, sec } from "./lib";
 import styles from "./DitherShinyText.module.css";
 
 /**
@@ -25,7 +25,7 @@ export function DitherShinyText({
   children,
 }: DitherShinyTextProps) {
   const dur = useMemo(
-    () => `${Math.max(0.4, 5 / Math.max(0.01, speed))}s`,
+    () => sec(Math.max(0.4, 5 / Math.max(0.01, speed))),
     [speed],
   );
 

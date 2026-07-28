@@ -1,0 +1,13 @@
+/* 3D tilt-on-hover: will-change for smooth transform, preserve-3d so children
+   can participate in parallax depth. */
+.tilt {
+  will-change: transform;
+  transform-style: preserve-3d;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tilt {
+    transform: none !important;
+    transition: none !important;
+  }
+}

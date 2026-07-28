@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 
-import { cn } from "./lib";
+import { cn, em, px, round } from "./lib";
 import { pixelPrefersReducedMotion } from "./pixel";
 import styles from "./DitherScrollReveal.module.css";
 
@@ -55,9 +55,9 @@ export function DitherScrollReveal({
             aria-hidden="true"
             className={styles.ditherRevealWord}
             style={{
-              opacity: t,
-              filter: `blur(${(1 - t) * 4}px)`,
-              transform: `translateY(${(1 - t) * 0.3}em)`,
+              opacity: round(t, 4),
+              filter: `blur(${px((1 - t) * 4)})`,
+              transform: `translateY(${em((1 - t) * 0.3)})`,
             }}
           >
             {/^\s*$/.test(w) ? "\u00a0" : w}

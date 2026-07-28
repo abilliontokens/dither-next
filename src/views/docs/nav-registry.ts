@@ -16,11 +16,20 @@ import { FEEDBACK_NAV } from "./components/feedback-nav";
 import { FIELD_NAV } from "./components/field-nav";
 import { SELECTION_NAV } from "./components/selection-nav";
 import { STRUCTURE_NAV } from "./components/structure-nav";
+import { LAYOUT_NAV } from "./components/layout-nav";
+import { MEDIA_NAV } from "./components/media-nav";
 import { OVERLAY_NAV } from "./components/overlay-nav";
 import { SURFACE_NAV } from "./components/surface-nav";
 import { NAVIGATION_NAV } from "./components/navigation-nav";
+import { GENERATIVE_NAV } from "./components/generative-nav";
+import { DATA_NAV } from "./components/data-nav";
 import { AUTH_NAV } from "./examples/auth-nav";
 import { PRODUCT_NAV } from "./examples/product-nav";
+import { SIDEBAR_NAV } from "./examples/sidebar-nav";
+import { STATS_NAV } from "./examples/stats-nav";
+import { TABLE_NAV } from "./examples/table-nav";
+import { CHAT_NAV } from "./examples/chat-nav";
+import { NOTIFICATIONS_NAV } from "./examples/notifications-nav";
 import { BACKGROUNDS_NAV } from "./backgrounds/backgrounds-nav";
 import { TEXT_NAV } from "./text/text-nav";
 import { ANIMATIONS_NAV } from "./animations/animations-nav";
@@ -54,6 +63,11 @@ export const GROUPS: NavGroup[] = [
       { id: "signin", label: "Sign in" },
       ...AUTH_NAV,
       ...PRODUCT_NAV,
+      ...SIDEBAR_NAV,
+      ...STATS_NAV,
+      ...TABLE_NAV,
+      ...CHAT_NAV,
+      ...NOTIFICATIONS_NAV,
     ],
   },
   {
@@ -74,9 +88,13 @@ export const GROUPS: NavGroup[] = [
       ...SELECTION_NAV,
       ...FEEDBACK_NAV,
       ...STRUCTURE_NAV,
+      ...LAYOUT_NAV,
+      ...MEDIA_NAV,
       ...OVERLAY_NAV,
       ...SURFACE_NAV,
       ...NAVIGATION_NAV,
+      ...GENERATIVE_NAV,
+      ...DATA_NAV,
     ],
   },
   {

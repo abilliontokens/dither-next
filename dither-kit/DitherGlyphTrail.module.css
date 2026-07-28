@@ -1,0 +1,12 @@
+/* DitherGlyphTrail - the seeded glyph SVG overlay. `image-rendering: pixelated`
+ * keeps the 4px glyph cells crisp; `prefers-reduced-motion: reduce` hides the
+ * whole trail (no motion). */
+.trail {
+  image-rendering: pixelated;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .trail {
+    display: none;
+  }
+}

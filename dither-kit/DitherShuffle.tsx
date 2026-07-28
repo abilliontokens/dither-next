@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 
-import { cn } from "./lib";
+import { cn, deg, em } from "./lib";
 import styles from "./DitherShuffle.module.css";
 
 export interface DitherShuffleProps {
@@ -64,9 +64,9 @@ export function DitherShuffle({
             {
               animationDelay: `${i * stagger}ms`,
               animationDuration: `${duration}ms`,
-              "--dx": `${c.dx}em`,
-              "--dy": `${c.dy}em`,
-              "--rot": `${c.rot}deg`,
+              "--dx": em(c.dx),
+              "--dy": em(c.dy),
+              "--rot": deg(c.rot),
             } as React.CSSProperties
           }
         >

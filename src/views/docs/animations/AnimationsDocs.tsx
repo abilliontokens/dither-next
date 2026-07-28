@@ -1,18 +1,28 @@
 "use client";
 
+import { useState } from "react";
+
 import {
   DitherAnimatedContent,
   DitherAntigravity,
   DitherBlobCursor,
+  DitherBouncyAccordion,
+  DitherCardStack,
   DitherClickSpark,
   DitherCrosshair,
   DitherCubes,
+  DitherDock,
   DitherElectricBorder,
+  DitherExpandTabs,
+  DitherExpandingArrow,
   DitherFadeContent,
   DitherGhostCursor,
   DitherGlareHover,
+  DitherGooeyMenu,
   DitherGradualBlur,
+  DitherHoldAction,
   DitherImageTrail,
+  DitherIsland,
   DitherLaserFlow,
   DitherLogoLoop,
   DitherMagicRings,
@@ -21,16 +31,22 @@ import {
   DitherMetaBalls,
   DitherMetallicPaint,
   DitherNoise,
+  DitherNotificationStack,
   DitherOrbitImages,
   DitherPixelTrail,
   DitherPixelTransition,
+  DitherPreviewRail,
   DitherRibbons,
+  DitherScrollProgress,
   DitherShapeBlur,
+  DitherSlideAction,
+  DitherSnapButton,
   DitherSplashCursor,
   DitherStarBorder,
   DitherStickerPeel,
   DitherStrands,
   DitherTargetCursor,
+  DitherWalletCard,
 } from "@dither-kit";
 import { DemoCard } from "../DemoCard";
 import { PropsTable, type PropRow } from "../PropsTable";
@@ -222,6 +238,110 @@ const API: Record<string, PropRow[]> = {
     { prop: "children", type: "content", default: "—" },
   ],
   stickerPeel: [{ prop: "children", type: "content", default: "—" }],
+  expandTabs: [
+    { prop: "tabs", type: "{ value, label, color? }[]", default: "required" },
+    { prop: "value", type: "string (controlled) — active tab", default: "required" },
+    { prop: "color", type: "PixelColor — active glyph fallback", default: '"blue"' },
+    { prop: "onChange", type: "(value: string)", default: "—" },
+  ],
+  island: [
+    { prop: "value", type: "boolean (controlled) — expanded", default: "false" },
+    { prop: "label", type: "string — compact row text", default: '"Status"' },
+    { prop: "color", type: "PixelColor — status dot", default: '"green"' },
+    { prop: "live", type: "boolean — pulse the dot while collapsed", default: "true" },
+    { prop: "children", type: "detail panel content", default: "—" },
+    { prop: "onChange", type: "(value: boolean)", default: "—" },
+  ],
+  cardStack: [
+    { prop: "items", type: "T[] — cycled forever", default: "required" },
+    { prop: "depth", type: "number — visible under-cards", default: "2" },
+    { prop: "children", type: "render prop: (item, index, top) => ReactNode", default: "card face fallback" },
+    { prop: "onAdvance", type: "(index: number) — after a card flies out", default: "—" },
+  ],
+  dock: [
+    { prop: "items", type: "{ value, label, color? }[]", default: "required" },
+    { prop: "magnify", type: "number — peak scale over the pointer", default: "1.7" },
+    { prop: "range", type: "number (px) — gaussian falloff radius", default: "80" },
+    { prop: "onSelect", type: "(value: string)", default: "—" },
+  ],
+  previewRail: [
+    { prop: "items", type: "{ value, label, hint?, color? }[]", default: "required" },
+    { prop: "value", type: "string (controlled) — active destination", default: "undefined" },
+    { prop: "range", type: "number (px) — pyramid falloff radius", default: "56" },
+    { prop: "side", type: '"left" | "right" — edge the rail hugs', default: '"left"' },
+    { prop: "onChange", type: "(value: string)", default: "—" },
+  ],
+  scrollProgress: [
+    { prop: "attach", type: '"viewport" | "parent"', default: '"viewport"' },
+    { prop: "edge", type: '"top" | "bottom"', default: '"top"' },
+    { prop: "color", type: "PixelColor", default: '"green"' },
+  ],
+  snapButton: [
+    { prop: "threshold", type: "number (px) — displacement that arms the snap", default: "64" },
+    { prop: "axis", type: '"x" | "y" | "both"', default: '"x"' },
+    { prop: "color", type: "PixelColor — armed accent", default: '"green"' },
+    { prop: "onSnap", type: "() — armed release, or Enter/Space", default: "—" },
+    { prop: "children", type: "label content", default: '"Pull to confirm"' },
+  ],
+  gooeyMenu: [
+    { prop: "items", type: "{ value, label, color? }[]", default: "required" },
+    { prop: "value", type: "boolean (controlled) — expanded", default: "false" },
+    { prop: "direction", type: '"up" | "down" | "left" | "right"', default: '"up"' },
+    { prop: "spacing", type: "number (px) — gap between item centers", default: "52" },
+    { prop: "onSelect", type: "(value: string) — also collapses", default: "—" },
+    { prop: "onChange", type: "(value: boolean)", default: "—" },
+  ],
+  bouncyAccordion: [
+    { prop: "items", type: "{ value, label, hint?, icon?, color?, content? }[]", default: "required" },
+    { prop: "value", type: 'string (controlled) — open item, "" closes all', default: '""' },
+    { prop: "color", type: "PixelColor — icon fallback tint", default: '"blue"' },
+    { prop: "slots", type: "Record<value, ReactNode> — rich panel content (else item.content)", default: "—" },
+    { prop: "onChange", type: "(value: string)", default: "—" },
+  ],
+  expandingArrow: [
+    { prop: "color", type: "PixelColor — tile and trail accent", default: '"blue"' },
+    { prop: "disabled", type: "boolean", default: "false" },
+    { prop: "children", type: "label content", default: '"Explore the kit"' },
+  ],
+  slideAction: [
+    { prop: "label", type: "string — track text and thumb aria-label", default: '"Slide to confirm"' },
+    { prop: "color", type: "PixelColor — thumb accent", default: '"green"' },
+    { prop: "disabled", type: "boolean", default: "false" },
+    { prop: "onConfirm", type: "() — thumb reached the end, or Enter/Space", default: "—" },
+  ],
+  holdAction: [
+    { prop: "duration", type: "number (ms) — hold time to complete", default: "1200" },
+    { prop: "direction", type: '"vertical" | "horizontal" — fill axis', default: '"vertical"' },
+    { prop: "color", type: "PixelColor — fill and crest accent", default: '"orange"' },
+    { prop: "disabled", type: "boolean", default: "false" },
+    { prop: "onComplete", type: "() — fill reached full; once per hold", default: "—" },
+    { prop: "children", type: "label content", default: "—" },
+  ],
+  walletCard: [
+    { prop: "accounts", type: "{ value, label, address, balance, change?, color? }[]", default: "required" },
+    { prop: "value", type: "string (controlled) — selected account", default: "first account" },
+    { prop: "balance / change", type: "number — override the active account's numbers", default: "account data" },
+    { prop: "currency", type: "string — balance prefix", default: '"$"' },
+    { prop: "notifications", type: "boolean — unread pulse on the bell", default: "false" },
+    { prop: "color", type: "PixelColor — card accent", default: '"green"' },
+    { prop: "onChange", type: "(value: string)", default: "—" },
+    { prop: "onAction", type: '("send" | "deposit" | "swap" | "buy")', default: "—" },
+    { prop: "onSearch", type: "(query: string) — live text on every keystroke", default: "—" },
+    { prop: "onSubmit", type: "(query: string) — Enter or a recent row", default: "—" },
+    { prop: "onNotify", type: "() — bell pressed", default: "—" },
+  ],
+  notificationStack: [
+    { prop: "items", type: "{ id, title, body?, time?, icon?, color? }[]", default: "required" },
+    { prop: "value", type: "boolean (controlled) — pinned open; hover/focus expand transiently", default: "false" },
+    { prop: "maxVisible", type: "number — cards shown in the stack and list", default: "3" },
+    { prop: "collapsedLabel", type: "string — header + toggle aria-label", default: '"Notifications"' },
+    { prop: "expandedLabel", type: "string — view-all button text", default: '"View all"' },
+    { prop: "emptyLabel", type: "string — empty-state card", default: '"All caught up"' },
+    { prop: "variant", type: '"stack" | "fan" | "condensed" — collapsed silhouette', default: '"stack"' },
+    { prop: "color", type: "PixelColor — icon fallback tint", default: '"blue"' },
+    { prop: "onChange", type: "(expanded: boolean)", default: "—" },
+    { prop: "onViewAll", type: "() — view-all pressed", default: "—" },
+  ],
 };
 
 const SNIPPETS = {
@@ -261,6 +381,75 @@ const SNIPPETS = {
   orbitImages: `<DitherOrbitImages items={['A', 'B', 'C', 'D', 'E']} />`,
   pixelTransition: `<DitherPixelTransition><YourCard /></DitherPixelTransition>`,
   stickerPeel: `<DitherStickerPeel><YourCard /></DitherStickerPeel>`,
+  expandTabs: `<DitherExpandTabs value={tab} onChange={setTab} tabs={[
+  { value: 'home', label: 'Home' },
+  { value: 'library', label: 'Library', color: 'purple' },
+  { value: 'alerts', label: 'Alerts', color: 'red' },
+]} />  {/* only the active tab unfolds its label */}`,
+  island: `<DitherIsland value={open} onChange={setOpen} label="Deploy running" color="green" live>
+  Build 214 · lint ok · 3 of 5 steps done.  {/* unfolds beneath the pill */}
+</DitherIsland>`,
+  cardStack: `<DitherCardStack items={cards} className="h-44 w-64">
+  {(item) => <article className="h-full rounded-lg border bg-card p-4">{item.title}</article>}
+</DitherCardStack>  {/* drag horizontally · flick advances · cycles */}`,
+  dock: `<DitherDock items={[
+  { value: 'home', label: 'Home' },
+  { value: 'studio', label: 'Studio', color: 'purple' },
+  { value: 'docs', label: 'Docs', color: 'green' },
+  { value: 'alerts', label: 'Alerts', color: 'red' },
+]} onSelect={go} />  {/* gaussian magnify around the pointer */}`,
+  previewRail: `<DitherPreviewRail value={dest} onChange={setDest} items={[
+  { value: 'inbox', label: 'Inbox', hint: '12 unread threads', color: 'blue' },
+  { value: 'drafts', label: 'Drafts', hint: '2 in progress', color: 'purple' },
+  { value: 'planner', label: 'Planner', hint: 'Sprint 14 — day 3', color: 'green' },
+  { value: 'metrics', label: 'Metrics', hint: 'p95 latency 42ms', color: 'orange' },
+  { value: 'settings', label: 'Settings', hint: 'Workspace + theme' },
+]} />  {/* ticks pyramid around the pointer · preview floats beside the rail */}`,
+  scrollProgress: `<DitherScrollProgress />                    {/* viewport, fixed top */}
+<DitherScrollProgress attach="parent" color="purple" />  {/* nearest scrollable parent */}`,
+  snapButton: `<DitherSnapButton threshold={64} axis="x" color="green" onSnap={confirm}>
+  Pull to deploy
+</DitherSnapButton>
+{/* 1:1 drag · rubber-band past the line · border arms at the threshold ·
+     release fires onSnap · Enter/Space fires without the pull */}`,
+  gooeyMenu: `<DitherGooeyMenu value={open} onChange={setOpen} items={[
+  { value: 'add', label: 'Add', color: 'green' },
+  { value: 'export', label: 'Export', color: 'blue' },
+  { value: 'share', label: 'Share', color: 'purple' },
+]} direction="up" onSelect={run} />
+{/* one SVG goo filter fuses the circles while they travel */}`,
+  bouncyAccordion: `<DitherBouncyAccordion value={panel} onChange={setPanel} items={[
+  { value: 'overview', label: 'Overview', hint: 'What shipped this week', icon: '▤',
+    content: 'Charts, buttons and backgrounds now share one Bayer engine.' },
+  { value: 'activity', label: 'Activity', hint: '3 deploys, 1 rollback', icon: '◷', color: 'green',
+    content: 'Build 214 settled after a weighted spring — 8% overshoot, then calm.' },
+  { value: 'alerts', label: 'Alerts', hint: 'One flapping check', icon: '◈', color: 'orange',
+    content: 'p95 latency wobbled at 04:00 and snapped back on its own.' },
+]} />  {/* single-open · spring overshoot on open · brisk close */}`,
+  expandingArrow: `<DitherExpandingArrow color="blue" onClick={explore}>
+  Explore the kit
+</DitherExpandingArrow>  {/* dotted trail unrolls on hover or focus */}`,
+  slideAction: `<DitherSlideAction label="Slide to deploy" color="green" onConfirm={deploy} />
+{/* 1:1 thumb drag · flick momentum counts · early release springs back ·
+     Enter/Space confirms without the slide */}`,
+  holdAction: `<DitherHoldAction duration={1200} direction="vertical" color="orange" onComplete={purge}>
+  Hold to purge cache
+</DitherHoldAction>  {/* liquid fill with a dotted crest · release early to drain */}`,
+  walletCard: `<DitherWalletCard value={account} onChange={setAccount} accounts={[
+  { value: 'main', label: 'Main', address: '0x7f3a9c2e14b7d55aa93d', balance: 12480.52, change: 2.4 },
+  { value: 'savings', label: 'Savings', address: '0x8b21e0c4a6f9d1327e55', balance: 8210.11, change: -1.1, color: 'purple' },
+  { value: 'trading', label: 'Trading', address: '0x91cc4db2e87a30f6b214', balance: 3033.7, change: 0.6, color: 'orange' },
+]} notifications
+  onAction={run} onSubmit={find} onNotify={openInbox} />
+{/* switcher + search morph from their triggers · digits cascade ·
+     privacy masks to ******* · copy-address gives a ✓ · bell pulses */}`,
+  notificationStack: `<DitherNotificationStack value={pinned} onChange={setPinned} items={[
+  { id: 'n1', title: 'Deploy finished', body: 'dither-ui → production in 42s', time: '2m', icon: '↑', color: 'green' },
+  { id: 'n2', title: 'New comment', body: 'Rei: "the drum snaps beautifully"', time: '16m', icon: '▤', color: 'blue' },
+  { id: 'n3', title: 'Build warning', body: 'chunk index.js is 447 kB', time: '1h', icon: '◈', color: 'orange' },
+]} onViewAll={openInbox} />
+{/* stacked summary → readable list on hover, focus or tap · tap pins ·
+     spring fan-out with per-card stagger */}`,
 };
 
 const cardBox = "grid h-28 w-52 place-items-center rounded-lg border border-border/60 bg-card text-sm text-muted-foreground";
@@ -268,6 +457,34 @@ const cursorArea = "grid h-40 w-full place-items-center rounded-lg border border
 const canvasBox = "h-64 w-full overflow-hidden rounded-lg border border-border/60";
 
 export function AnimationsDocs() {
+  const [expandTab, setExpandTab] = useState("home");
+  const [islandOpen, setIslandOpen] = useState(false);
+  const STACK_CARDS = [
+    { title: "Prints · riso on cream", color: "purple" },
+    { title: "Frames · oak 24×30", color: "blue" },
+    { title: "Zines · issue 04", color: "green" },
+    { title: "Stickers · die-cut set", color: "orange" },
+  ];
+  const [stackIndex, setStackIndex] = useState(0);
+  const [dockPick, setDockPick] = useState("—");
+  const [railDest, setRailDest] = useState("inbox");
+  const [snapCount, setSnapCount] = useState(0);
+  const [gooeyOpen, setGooeyOpen] = useState(false);
+  const [gooeyPick, setGooeyPick] = useState("—");
+  const [bouncyPanel, setBouncyPanel] = useState("overview");
+  const [slideCount, setSlideCount] = useState(0);
+  const [holdCount, setHoldCount] = useState(0);
+  const [walletAccount, setWalletAccount] = useState("main");
+  const [walletNote, setWalletNote] = useState("—");
+  const [stackPinned, setStackPinned] = useState(false);
+  const [stackNote, setStackNote] = useState("—");
+  const STACK_VARIANTS = ["stack", "fan", "condensed"] as const;
+  const [stackVariant, setStackVariant] = useState<(typeof STACK_VARIANTS)[number]>("stack");
+  const WALLET_ACCOUNTS = [
+    { value: "main", label: "Main", address: "0x7f3a9c2e14b7d55aa93d", balance: 12480.52, change: 2.4 },
+    { value: "savings", label: "Savings", address: "0x8b21e0c4a6f9d1327e55", balance: 8210.11, change: -1.1, color: "purple" },
+    { value: "trading", label: "Trading", address: "0x91cc4db2e87a30f6b214", balance: 3033.7, change: 0.6, color: "orange" },
+  ];
   return (
     <>
       {/* Animated content */}
@@ -680,6 +897,332 @@ export function AnimationsDocs() {
           </DitherStickerPeel>
         </DemoCard>
         <PropsTable rows={API.stickerPeel} />
+      </section>
+      {/* Expand tabs */}
+      <section id="expand-tabs" className="mt-16 scroll-mt-24">
+        <h2 className="text-lg tracking-tight">Expand tabs</h2>
+        <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+          An icon bar where only the active tab unfolds its label — the rest stay square
+          glyphs. The label slides through the house 0fr grid trick.
+        </p>
+        <DemoCard code={SNIPPETS.expandTabs}>
+          <div className="grid min-h-24 place-items-center">
+            <DitherExpandTabs
+              value={expandTab}
+              onChange={setExpandTab}
+              tabs={[
+                { value: "home", label: "Home" },
+                { value: "library", label: "Library", color: "purple" },
+                { value: "alerts", label: "Alerts", color: "red" },
+              ]}
+            />
+          </div>
+        </DemoCard>
+        <PropsTable rows={API.expandTabs} />
+      </section>
+
+      {/* Island */}
+      <section id="island" className="mt-16 scroll-mt-24">
+        <h2 className="text-lg tracking-tight">Island</h2>
+        <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+          A morphing status pill — the compact row keeps its pulse while the detail
+          unfolds beneath. Escape collapses; reduced motion snaps.
+        </p>
+        <DemoCard code={SNIPPETS.island}>
+          <div className="grid min-h-28 place-items-center">
+            <DitherIsland value={islandOpen} onChange={setIslandOpen} label="Deploy running" color="green" live className="w-64">
+              Build 214 · lint ok · bundle 84kB · 3 of 5 steps done.
+            </DitherIsland>
+          </div>
+        </DemoCard>
+        <PropsTable rows={API.island} />
+      </section>
+
+      {/* Card stack */}
+      <section id="card-stack" className="mt-16 scroll-mt-24">
+        <h2 className="text-lg tracking-tight">Card stack</h2>
+        <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+          A swipe deck on the kit&apos;s own gesture math — 1:1 tracking, rubber-band past
+          the edge, a flick or a far drag sends the card flying and the stack rises. Drag
+          the top card.
+        </p>
+        <DemoCard code={SNIPPETS.cardStack}>
+          <div className="grid min-h-56 place-items-center">
+            <div>
+              <DitherCardStack items={STACK_CARDS} className="h-40 w-64" onAdvance={setStackIndex}>
+                {(item) => (
+                  <article className="flex h-full flex-col justify-between rounded-lg border border-border/60 bg-card/90 p-4">
+                    <span className="size-2 rounded-[2px]" style={{ background: `var(--swatch-${item.color})` }} aria-hidden="true" />
+                    <p className="font-mono text-[13px] text-foreground">{item.title}</p>
+                  </article>
+                )}
+              </DitherCardStack>
+              <p className="mt-3 text-center text-[10px] tabular-nums text-muted-foreground">card {stackIndex + 1} of {STACK_CARDS.length}</p>
+            </div>
+          </div>
+        </DemoCard>
+        <PropsTable rows={API.cardStack} />
+      </section>
+
+      {/* Dock */}
+      <section id="dock" className="mt-16 scroll-mt-24">
+        <h2 className="text-lg tracking-tight">Dock</h2>
+        <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+          A hover-magnifying dock — items swell on a gaussian falloff around the pointer
+          and settle when it leaves. Reduced motion keeps the row still.
+        </p>
+        <DemoCard code={SNIPPETS.dock}>
+          <div className="grid min-h-28 place-items-end justify-center pb-2">
+            <div className="text-center">
+              <DitherDock
+                items={[
+                  { value: "home", label: "Home" },
+                  { value: "studio", label: "Studio", color: "purple" },
+                  { value: "docs", label: "Docs", color: "green" },
+                  { value: "alerts", label: "Alerts", color: "red" },
+                ]}
+                onSelect={setDockPick}
+              />
+              <p className="mt-2 text-[10px] text-muted-foreground">selected: {dockPick}</p>
+            </div>
+          </div>
+        </DemoCard>
+        <PropsTable rows={API.dock} />
+      </section>
+
+      {/* Preview rail */}
+      <section id="preview-rail" className="mt-16 scroll-mt-24">
+        <h2 className="text-lg tracking-tight">Preview rail</h2>
+        <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+          A Codex app-inspired navigation rail — compact ticks form a pyramid around the
+          pointer and reveal a floating destination preview beside the rail. Keyboard
+          focus previews too; reduced motion keeps the ticks still.
+        </p>
+        <DemoCard code={SNIPPETS.previewRail}>
+          <div className="flex min-h-56 items-center justify-start pl-6">
+            <DitherPreviewRail
+              value={railDest}
+              onChange={setRailDest}
+              items={[
+                { value: "inbox", label: "Inbox", hint: "12 unread threads", color: "blue" },
+                { value: "drafts", label: "Drafts", hint: "2 in progress", color: "purple" },
+                { value: "planner", label: "Planner", hint: "Sprint 14 — day 3", color: "green" },
+                { value: "metrics", label: "Metrics", hint: "p95 latency 42ms", color: "orange" },
+                { value: "settings", label: "Settings", hint: "Workspace + theme" },
+              ]}
+            />
+            <p className="ml-10 text-[10px] text-muted-foreground">destination: {railDest}</p>
+          </div>
+        </DemoCard>
+        <PropsTable rows={API.previewRail} />
+      </section>
+
+      {/* Scroll progress */}
+      <section id="scroll-progress" className="mt-16 scroll-mt-24">
+        <h2 className="text-lg tracking-tight">Scroll progress</h2>
+        <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+          Reading progress as a dithered bar — it composes DitherProgress and rides the
+          viewport edge, or the top of any scrollable parent. Scroll the box.
+        </p>
+        <DemoCard code={SNIPPETS.scrollProgress}>
+          <div className="relative mx-auto h-48 max-w-md overflow-y-auto rounded-lg border border-border/60">
+            <DitherScrollProgress attach="parent" color="purple" />
+            <div className="grid gap-2 p-4" aria-hidden="true">
+              {Array.from({ length: 14 }, (_, i) => (
+                <div key={i} className={`h-2 rounded-sm bg-border/50 ${i % 3 === 0 ? "w-2/3" : "w-full"}`} />
+              ))}
+            </div>
+          </div>
+        </DemoCard>
+        <PropsTable rows={API.scrollProgress} />
+      </section>
+
+      {/* Snap button */}
+      <section id="snap-button" className="mt-16 scroll-mt-24">
+        <h2 className="text-lg tracking-tight">Snap button</h2>
+        <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+          Pull to confirm — drag past the line and the border arms; release fires and the
+          button springs home. Short pulls just spring. Enter and Space fire without the
+          pull; reduced motion skips the spring.
+        </p>
+        <DemoCard code={SNIPPETS.snapButton}>
+          <div className="grid min-h-28 place-items-center gap-3">
+            <DitherSnapButton threshold={64} axis="x" color="green" onSnap={() => setSnapCount((c) => c + 1)}>
+              Pull to deploy
+            </DitherSnapButton>
+            <p className="text-[10px] tabular-nums text-muted-foreground">deploys fired: {snapCount}</p>
+          </div>
+        </DemoCard>
+        <PropsTable rows={API.snapButton} />
+      </section>
+
+      {/* Gooey menu */}
+      <section id="gooey-menu" className="mt-16 scroll-mt-24">
+        <h2 className="text-lg tracking-tight">Gooey menu</h2>
+        <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+          Actions that melt out of one trigger — an SVG goo filter fuses the circles while
+          they travel, then they settle apart. Escape collapses; reduced motion drops the
+          travel.
+        </p>
+        <DemoCard code={SNIPPETS.gooeyMenu}>
+          <div className="grid min-h-64 place-items-end justify-center pb-4">
+            <div className="text-center">
+              <DitherGooeyMenu
+                value={gooeyOpen}
+                onChange={setGooeyOpen}
+                direction="up"
+                items={[
+                  { value: "add", label: "Add", color: "green" },
+                  { value: "export", label: "Export", color: "blue" },
+                  { value: "share", label: "Share", color: "purple" },
+                ]}
+                onSelect={setGooeyPick}
+              />
+              <p className="mt-3 text-[10px] text-muted-foreground">picked: {gooeyPick}</p>
+            </div>
+          </div>
+        </DemoCard>
+        <PropsTable rows={API.gooeyMenu} />
+      </section>
+
+      {/* Bouncy accordion */}
+      <section id="bouncy-accordion" className="mt-16 scroll-mt-24">
+        <h2 className="text-lg tracking-tight">Bouncy accordion</h2>
+        <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+          A single-open accordion with a weighted spring layout — panels overshoot and
+          settle on a sampled damped-spring easing, icon rows lead each header, and
+          content rises into view. Reduced motion reveals instantly.
+        </p>
+        <DemoCard code={SNIPPETS.bouncyAccordion}>
+          <DitherBouncyAccordion
+            value={bouncyPanel}
+            onChange={setBouncyPanel}
+            className="mx-auto max-w-sm"
+            items={[
+              { value: "overview", label: "Overview", hint: "What shipped this week", icon: "▤", content: "Charts, buttons and backgrounds now share one Bayer engine." },
+              { value: "activity", label: "Activity", hint: "3 deploys, 1 rollback", icon: "◷", color: "green", content: "Build 214 settled after a weighted spring — 8% overshoot, then calm." },
+              { value: "alerts", label: "Alerts", hint: "One flapping check", icon: "◈", color: "orange", content: "p95 latency wobbled at 04:00 and snapped back on its own." },
+            ]}
+          />
+        </DemoCard>
+        <PropsTable rows={API.bouncyAccordion} />
+      </section>
+
+      {/* Expanding arrow */}
+      <section id="expanding-arrow" className="mt-16 scroll-mt-24">
+        <h2 className="text-lg tracking-tight">Expanding arrow</h2>
+        <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+          An accent tile that expands into a dotted-arrow trail on hover or focus — the
+          trail is stamped from the same accent hue. Reduced motion reveals it instantly.
+        </p>
+        <DemoCard code={SNIPPETS.expandingArrow}>
+          <div className="flex min-h-24 items-center justify-center">
+            <DitherExpandingArrow color="blue">Explore the kit</DitherExpandingArrow>
+          </div>
+        </DemoCard>
+        <PropsTable rows={API.expandingArrow} />
+      </section>
+
+      {/* Slide action */}
+      <section id="slide-action" className="mt-16 scroll-mt-24">
+        <h2 className="text-lg tracking-tight">Slide action</h2>
+        <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+          Drag the thumb to the end of the track to confirm — flick momentum counts — or
+          release early and it springs back. Enter or Space confirms without the slide.
+        </p>
+        <DemoCard code={SNIPPETS.slideAction}>
+          <div className="flex min-h-24 flex-col items-center justify-center gap-3">
+            <DitherSlideAction label="Slide to deploy" color="green" onConfirm={() => setSlideCount((c) => c + 1)} />
+            <p className="font-mono text-[10px] text-muted-foreground">deploys: {slideCount}</p>
+          </div>
+        </DemoCard>
+        <PropsTable rows={API.slideAction} />
+      </section>
+
+      {/* Hold action */}
+      <section id="hold-action" className="mt-16 scroll-mt-24">
+        <h2 className="text-lg tracking-tight">Hold action</h2>
+        <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+          Hold to complete — a liquid fill with a dotted crest rises (or slides) while you
+          press; release early and it drains back. A held Enter or Space works the same
+          way.
+        </p>
+        <DemoCard code={SNIPPETS.holdAction}>
+          <div className="flex min-h-24 flex-col items-center justify-center gap-3">
+            <div className="flex items-center gap-4">
+              <DitherHoldAction color="orange" onComplete={() => setHoldCount((c) => c + 1)}>Hold to purge cache</DitherHoldAction>
+              <DitherHoldAction direction="horizontal" color="red" duration={900} onComplete={() => setHoldCount((c) => c + 1)}>Hold to delete</DitherHoldAction>
+            </div>
+            <p className="font-mono text-[10px] text-muted-foreground">completed: {holdCount}</p>
+          </div>
+        </DemoCard>
+        <PropsTable rows={API.holdAction} />
+      </section>
+
+      {/* Wallet card */}
+      <section id="wallet-card" className="mt-16 scroll-mt-24">
+        <h2 className="text-lg tracking-tight">Wallet card</h2>
+        <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+          A wallet overview card — the account switcher and search morph open from their
+          triggers, the balance cascades in with a change pill and privacy toggle, the
+          address copies with feedback, the bell carries an unread pulse, and Send /
+          Deposit / Swap / Buy report through one event.
+        </p>
+        <DemoCard code={SNIPPETS.walletCard}>
+          <div className="flex min-h-72 flex-col items-center justify-center gap-3">
+            <DitherWalletCard
+              value={walletAccount}
+              onChange={setWalletAccount}
+              accounts={WALLET_ACCOUNTS}
+              notifications
+              onAction={(name) => setWalletNote(name)}
+              onSubmit={(q) => setWalletNote("search: " + q)}
+              onNotify={() => setWalletNote("notifications")}
+            />
+            <p className="font-mono text-[10px] text-muted-foreground">last: {walletNote}</p>
+          </div>
+        </DemoCard>
+        <PropsTable rows={API.walletCard} />
+      </section>
+
+      {/* Notification stack */}
+      <section id="notification-stack" className="mt-16 scroll-mt-24">
+        <h2 className="text-lg tracking-tight">Notification stack</h2>
+        <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+          Compact notification cards that spring from a stacked summary into a readable
+          list on hover, focus or tap — tap pins the list open, and the view-all row
+          appears with the expansion. Reduced motion snaps.
+        </p>
+        <DemoCard code={SNIPPETS.notificationStack}>
+          <div className="flex min-h-72 flex-col items-center justify-center gap-4">
+            <DitherNotificationStack
+              value={stackPinned}
+              onChange={setStackPinned}
+              variant={stackVariant}
+              items={[
+                { id: "n1", title: "Deploy finished", body: "dither-ui → production in 42s", time: "2m", icon: "↑", color: "green" },
+                { id: "n2", title: "New comment", body: "Rei: “the drum snaps beautifully”", time: "16m", icon: "▤", color: "blue" },
+                { id: "n3", title: "Build warning", body: "chunk index.js is 447 kB", time: "1h", icon: "◈", color: "orange" },
+              ]}
+              onViewAll={() => setStackNote("view all")}
+            />
+            <p className="font-mono text-[10px] text-muted-foreground">pinned: {String(stackPinned)} · last: {stackNote}</p>
+            <div className="flex gap-1">
+              {STACK_VARIANTS.map((v) => (
+                <button
+                  key={v}
+                  type="button"
+                  aria-pressed={stackVariant === v}
+                  className={`rounded px-2.5 py-1 text-[11px] transition-colors ${stackVariant === v ? "bg-card text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+                  onClick={() => setStackVariant(v)}
+                >
+                  {v}
+                </button>
+              ))}
+            </div>
+          </div>
+        </DemoCard>
+        <PropsTable rows={API.notificationStack} />
       </section>
     </>
   );

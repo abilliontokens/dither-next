@@ -1,0 +1,24 @@
+/* Blinking block caret for the DitherTerminalPrompt line — same module
+ * keyframe idiom as DitherWalletCard. The caret is solid (no animation) under
+ * reduced motion, matching the motion-reduce contract every kit piece honors.
+ * The native input caret is hidden (caret-color: transparent) so this block is
+ * the only visible caret; during IME composition the native caret returns and
+ * this overlay is unmounted (see the component). */
+.caret {
+  animation: dk-term-blink 1.1s steps(1, end) infinite;
+}
+@keyframes dk-term-blink {
+  0%,
+  50% {
+    opacity: 1;
+  }
+  50.01%,
+  100% {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .caret {
+    animation: none;
+  }
+}

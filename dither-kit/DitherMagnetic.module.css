@@ -1,0 +1,11 @@
+/* Magnetic pull: will-change for smooth transform compositing. */
+.magnetic {
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .magnetic {
+    transform: none !important;
+    transition: none !important;
+  }
+}

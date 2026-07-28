@@ -7,4 +7,10 @@ export const OVERLAY_NAV = [
   { id: "menubar", label: "Menubar" },
   { id: "tooltip", label: "Tooltip" },
   { id: "preview-card", label: "Preview Card" },
-] as const
+  { id: "command", label: "Command" },
+  { id: "radial-menu", label: "Radial menu" },
+  { id: "bottom-sheet", label: "Bottom sheet" },
+  { id: "hover-card", label: "Hover card" },
+  { id: "tour", label: "Tour" },
+  { id: "command-queue", label: "Command queue" },
+] as const;

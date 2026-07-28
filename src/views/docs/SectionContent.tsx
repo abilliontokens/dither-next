@@ -6,15 +6,24 @@ import { HandbookPack } from "./HandbookPack";
 import { ExamplesCorePack } from "./ExamplesCorePack";
 import { AuthExamples } from "./examples/AuthExamples";
 import { ProductExamples } from "./examples/ProductExamples";
+import { SidebarExamples } from "./examples/SidebarExamples";
+import { StatsExamples } from "./examples/StatsExamples";
+import { TableExamples } from "./examples/TableExamples";
+import { ChatExamples } from "./examples/ChatExamples";
+import { NotificationsExamples } from "./examples/NotificationsExamples";
 import { ChartsDocs } from "./components/ChartsDocs";
 import { FormDocs } from "./components/FormDocs";
 import { FieldDocs } from "./components/FieldDocs";
 import { SelectionDocs } from "./components/SelectionDocs";
 import { FeedbackDocs } from "./components/FeedbackDocs";
 import { StructureDocs } from "./components/StructureDocs";
+import { LayoutDocs } from "./components/LayoutDocs";
+import { MediaDocs } from "./components/MediaDocs";
 import { OverlayDocs } from "./components/OverlayDocs";
 import { SurfaceDocs } from "./components/SurfaceDocs";
 import { NavigationDocs } from "./components/NavigationDocs";
+import { GenerativeDocs } from "./components/GenerativeDocs";
+import { DataDocs } from "./components/DataDocs";
 import { BackgroundsDocs } from "./backgrounds/BackgroundsDocs";
 import { TextDocs } from "./text/TextDocs";
 import { AnimationsDocs } from "./animations/AnimationsDocs";
@@ -50,15 +59,24 @@ export function DocsSections() {
       <ExamplesCorePack />
       <AuthExamples />
       <ProductExamples />
+      <SidebarExamples />
+      <StatsExamples />
+      <TableExamples />
+      <ChatExamples />
+      <NotificationsExamples />
       <ChartsDocs />
       <FormDocs />
       <FieldDocs />
       <SelectionDocs />
       <FeedbackDocs />
       <StructureDocs />
+      <LayoutDocs />
+      <MediaDocs />
       <OverlayDocs />
       <SurfaceDocs />
       <NavigationDocs />
+      <GenerativeDocs />
+      <DataDocs />
       <BackgroundsDocs />
       <TextDocs />
       <AnimationsDocs />

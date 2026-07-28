@@ -6,4 +6,6 @@ export const NAVIGATION_NAV = [
   { id: "rating", label: "Rating" },
   { id: "stepper", label: "Stepper" },
   { id: "timeline", label: "Timeline" },
-] as const
+  { id: "carousel", label: "Carousel" },
+  { id: "outline", label: "Outline" },
+] as const;

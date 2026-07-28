@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 
-import { cn } from "./lib";
+import { cn, ms } from "./lib";
 import styles from "./DitherPixelTransition.module.css";
 
 export interface DitherPixelTransitionProps {
@@ -55,7 +55,7 @@ export function DitherPixelTransition({
           <span
             key={i}
             className={styles.cell}
-            style={{ background: color, transitionDelay: `${delay}ms` }}
+            style={{ background: color, transitionDelay: ms(delay) }}
           />
         ))}
       </div>

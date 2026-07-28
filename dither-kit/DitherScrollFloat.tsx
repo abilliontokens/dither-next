@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 
-import { cn } from "./lib";
+import { cn, em, round } from "./lib";
 import { pixelPrefersReducedMotion } from "./pixel";
 import styles from "./DitherScrollFloat.module.css";
 
@@ -47,8 +47,8 @@ export function DitherScrollFloat({
   const floatStyle = (i: number) => {
     const t = Math.max(0, Math.min(1, progress * chars.length - i * 0.5));
     return {
-      opacity: 0.15 + 0.85 * t,
-      transform: `translateY(${(1 - t) * 0.7 * amount}em)`,
+      opacity: round(0.15 + 0.85 * t, 4),
+      transform: `translateY(${em((1 - t) * 0.7 * amount)})`,
     };
   };
 

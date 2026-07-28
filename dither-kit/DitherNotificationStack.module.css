@@ -1,0 +1,24 @@
+/* Transitions for DitherNotificationStack — verbatim timing from the Vue
+ * `<style scoped>` `.dk-ns-fade` (opacity 160ms ease). CSS animations (not
+ * transitions) drive the enter/leave so the enter plays on mount; the element
+ * stays mounted via `usePresence` while the leave runs, then unmounts. */
+.viewAllEnter {
+  animation: dk-ns-fade 160ms ease both;
+}
+.viewAllLeave {
+  animation: dk-ns-fade 160ms ease reverse both;
+}
+@keyframes dk-ns-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .viewAllEnter,
+  .viewAllLeave {
+    animation: none;
+  }
+}

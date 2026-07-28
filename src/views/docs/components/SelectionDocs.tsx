@@ -10,6 +10,7 @@ import {
   DitherSelect,
   DitherToggle,
   DitherToggleGroup,
+  DitherWheelPicker,
 } from "@dither-kit";
 
 import { DemoCard } from "../DemoCard";
@@ -172,6 +173,21 @@ const STYLES = [
 <DitherToggleGroup value={align} onChange={setAlign} options={ALIGN} />
 <DitherToggleGroup value={styles} onChange={setStyles} options={STYLES} type="multiple" />`;
 
+const HOURS = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, "0"));
+const MINUTES = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, "0"));
+
+const SNIPPET_WHEEL = `const [hour, setHour] = useState("09")
+const [minute, setMinute] = useState("30")
+const HOURS = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, "0"))
+const MINUTES = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, "0"))
+
+{/* wheels compose side by side; each is one drum */}
+<div className="flex items-center gap-1">
+  <DitherWheelPicker value={hour} onChange={setHour} options={HOURS} label="Hour" />
+  <span className="text-muted-foreground">:</span>
+  <DitherWheelPicker value={minute} onChange={setMinute} options={MINUTES} label="Minute" color="green" />
+</div>`;
+
 const API: Record<string, PropRow[]> = {
   select: [
     { prop: "options", type: "Option[]", default: "—" },
@@ -223,9 +239,19 @@ const API: Record<string, PropRow[]> = {
     { prop: "color", type: "PixelColor", default: '"blue"' },
     { prop: "className", type: "string", default: "—" },
   ],
+  wheelPicker: [
+    { prop: "options", type: "(string | { value, label })[]", default: "—" },
+    { prop: "value", type: "string (controlled)", default: "—" },
+    { prop: "rows", type: "number — visible rows (odd)", default: "5" },
+    { prop: "label", type: "string — accessible name", default: '"Wheel picker"' },
+    { prop: "color", type: "PixelColor — selected notch tint", default: '"blue"' },
+    { prop: "onChange", type: "(value: string)", default: "—" },
+  ],
 };
 
 export function SelectionDocs() {
+  const [wheelHour, setWheelHour] = useState("09");
+  const [wheelMinute, setWheelMinute] = useState("30");
   const [chart, setChart] = useState("area");
   const [swatch, setSwatch] = useState("blue");
   const [term, setTerm] = useState("");
@@ -291,6 +317,26 @@ export function SelectionDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.autocomplete} />
+      </section>
+
+      <section id="wheel-picker" className="mt-16 scroll-mt-24">
+        <h2 className="text-lg tracking-tight">Wheel Picker</h2>
+        <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+          An iOS-style picker wheel — a 3D drum on native momentum scroll that snaps to
+          the nearest notch, steered by wheel, drag or spinbutton keys. Wheels compose
+          side by side for date and time pickers; reduced motion flattens the drum.
+        </p>
+        <DemoCard code={SNIPPET_WHEEL}>
+          <div className="flex flex-col items-center gap-4">
+            <div className="flex items-center gap-1">
+              <DitherWheelPicker value={wheelHour} onChange={setWheelHour} options={HOURS} label="Hour" />
+              <span className="text-muted-foreground">:</span>
+              <DitherWheelPicker value={wheelMinute} onChange={setWheelMinute} options={MINUTES} label="Minute" color="green" />
+            </div>
+            <p className="font-mono text-[11px] text-muted-foreground">time: {wheelHour}:{wheelMinute}</p>
+          </div>
+        </DemoCard>
+        <PropsTable rows={API.wheelPicker} />
       </section>
 
       <section id="radio" className="mt-16 scroll-mt-24">
