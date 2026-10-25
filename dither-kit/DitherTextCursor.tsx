@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef } from "react";
 
 import { cn } from "./lib";
 import { pixelPrefersReducedMotion } from "./pixel";
+import { useInviewLoop } from "./use-inview-loop";
 
 export interface DitherTextCursorProps {
   text?: string;
@@ -33,33 +34,38 @@ export function DitherTextCursor({
   useEffect(() => {
     // Re-seed pos to match the current char count.
     posRef.current = chars.map(() => ({ x: 0, y: 0 }));
-
-    if (pixelPrefersReducedMotion()) return;
-
-    const frame = () => {
-      rafRef.current = requestAnimationFrame(frame);
-      const kids = trailRef.current?.children;
-      if (!kids) return;
-      const pos = posRef.current;
-      const mouse = mouseRef.current;
-      let tx = mouse.x;
-      let ty = mouse.y;
-      for (let i = 0; i < pos.length; i++) {
-        pos[i].x += (tx - pos[i].x) * 0.35;
-        pos[i].y += (ty - pos[i].y) * 0.35;
-        const el = kids[i] as HTMLElement;
-        el.style.transform = `translate(${pos[i].x}px, ${pos[i].y}px) translate(-50%, -50%)`;
-        el.style.opacity = mouse.active ? String(1 - i / (pos.length + 1)) : "0";
-        tx = pos[i].x;
-        ty = pos[i].y;
-      }
-    };
-
-    rafRef.current = requestAnimationFrame(frame);
-    return () => {
-      if (rafRef.current) cancelAnimationFrame(rafRef.current);
-    };
   }, [chars]);
+
+  function frame() {
+    rafRef.current = requestAnimationFrame(frame);
+    const kids = trailRef.current?.children;
+    if (!kids) return;
+    const pos = posRef.current;
+    const mouse = mouseRef.current;
+    let tx = mouse.x;
+    let ty = mouse.y;
+    for (let i = 0; i < pos.length; i++) {
+      pos[i].x += (tx - pos[i].x) * 0.35;
+      pos[i].y += (ty - pos[i].y) * 0.35;
+      const el = kids[i] as HTMLElement;
+      el.style.transform = `translate(${pos[i].x}px, ${pos[i].y}px) translate(-50%, -50%)`;
+      el.style.opacity = mouse.active ? String(1 - i / (pos.length + 1)) : "0";
+      tx = pos[i].x;
+      ty = pos[i].y;
+    }
+  }
+
+  function start() {
+    if (rafRef.current || pixelPrefersReducedMotion()) return;
+    rafRef.current = requestAnimationFrame(frame);
+  }
+  function stop() {
+    if (!rafRef.current) return;
+    cancelAnimationFrame(rafRef.current);
+    rafRef.current = 0;
+  }
+
+  useInviewLoop(areaRef, start, stop);
 
   return (
     <div

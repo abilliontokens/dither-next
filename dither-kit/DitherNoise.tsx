@@ -18,6 +18,7 @@ export interface DitherNoiseProps {
   density?: number;
   opacity?: number;
   paused?: boolean;
+  frameRate?: number;
   dpr?: number;
   mixBlendMode?: string;
   seed?: number;
@@ -36,6 +37,7 @@ export function DitherNoise({
   density = 0.5,
   opacity = 1,
   paused = false,
+  frameRate = 0,
   dpr,
   mixBlendMode,
   seed,
@@ -58,7 +60,7 @@ export function DitherNoise({
   useDitherBackground({
     wrapRef, canvasRef,
     cell: CELL, maxCols: MAX_COLS, maxRows: MAX_ROWS,
-    dpr: () => dpr, paused: () => paused,
+    dpr: () => dpr, paused: () => paused, frameRate: () => frameRate,
     renderMode: () => renderMode, precompiled: () => precompiled,
     restart: () => [seed, renderMode, precompiled, dpr],
     render: (buffer: RasterBuffer, clock: number) => paintNoiseField(buffer, params, clock, matrix),

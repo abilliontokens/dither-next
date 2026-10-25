@@ -91,7 +91,7 @@ export function DitherCenterMorphModal({
         aria-label={label}
         className={cn(
           styles.panel,
-          "relative flex h-full w-full flex-col overflow-hidden rounded-xl border border-border/80 bg-card shadow-[0_20px_60px_-20px_rgba(0,0,0,0.8)]",
+          "relative flex h-full w-full flex-col overflow-hidden rounded-xl border border-border/80 bg-card font-mono shadow-[0_20px_60px_-20px_rgba(0,0,0,0.8)]",
           className,
         )}
       >

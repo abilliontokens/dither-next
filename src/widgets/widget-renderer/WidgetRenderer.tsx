@@ -150,7 +150,16 @@ export function WidgetRenderer({ widget, artboardId }: WidgetRendererProps) {
     return (
       <div className="flex h-full w-full items-center justify-center overflow-visible p-2">
         {Comp && !demo ? (
-          <Generic {...compProps} className="max-h-full max-w-full">
+          <Generic
+            {...compProps}
+            {...(entry?.vmodel
+              ? {
+                  [entry.vmodel.prop ?? "value"]: w.model !== undefined ? w.model : entry.vmodel.def,
+                  [entry.vmodel.event ?? "onChange"]: setModel,
+                }
+              : {})}
+            className="max-h-full max-w-full"
+          >
             {slotText}
           </Generic>
         ) : demo === "tab-panel" ? (

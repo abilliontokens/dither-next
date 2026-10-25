@@ -24,6 +24,7 @@ export interface DitherGridDistortionProps {
   mouseInteraction?: boolean;
   mouseStrength?: number;
   paused?: boolean;
+  frameRate?: number;
   dpr?: number;
   mixBlendMode?: string;
   seed?: number;
@@ -48,6 +49,7 @@ export function DitherGridDistortion({
   mouseInteraction = true,
   mouseStrength = 1,
   paused = false,
+  frameRate = 0,
   dpr,
   mixBlendMode,
   seed,
@@ -87,6 +89,7 @@ export function DitherGridDistortion({
     maxRows: MAX_ROWS,
     dpr: () => dpr,
     paused: () => paused,
+    frameRate: () => frameRate,
     renderMode: () => renderMode,
     precompiled: () => precompiled,
     restart: () => [seed, renderMode, precompiled, dpr],

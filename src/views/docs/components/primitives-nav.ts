@@ -1,0 +1,23 @@
+// Nav items for the primitives section pack. Verbatim port of
+// src/pages/docs/primitives/primitives-nav.ts — section ids are permanent deep links.
+export const PRIMITIVES_NAV = [
+  { id: "box", label: "Box" },
+  { id: "text", label: "Text" },
+  { id: "divider", label: "Divider" },
+  { id: "visually-hidden", label: "VisuallyHidden" },
+  { id: "svg", label: "Svg" },
+  { id: "img", label: "Image (plain)" },
+  { id: "spacer", label: "Spacer" },
+  { id: "portal", label: "Portal" },
+  { id: "overlay", label: "Overlay" },
+  { id: "measure", label: "Measure" },
+  { id: "clipboard", label: "Clipboard" },
+  { id: "click-outside", label: "ClickOutside" },
+  { id: "focus-ring", label: "FocusRing" },
+  { id: "focus-scope", label: "FocusScope" },
+  { id: "hover-area", label: "HoverArea" },
+  { id: "pressable", label: "Pressable" },
+  { id: "in-view", label: "InView" },
+  { id: "icon", label: "Icon" },
+  { id: "icon-set", label: "IconSet" },
+] as const;

@@ -23,6 +23,7 @@ export interface DitherParticlesProps {
   mouseInteraction?: boolean;
   mouseStrength?: number;
   paused?: boolean;
+  frameRate?: number;
   dpr?: number;
   mixBlendMode?: string;
   seed?: number;
@@ -46,6 +47,7 @@ export function DitherParticles({
   mouseInteraction = true,
   mouseStrength = 1,
   paused = false,
+  frameRate = 0,
   dpr,
   mixBlendMode,
   seed,
@@ -73,7 +75,7 @@ export function DitherParticles({
   useDitherBackground({
     wrapRef, canvasRef,
     cell: CELL, maxCols: MAX_COLS, maxRows: MAX_ROWS,
-    dpr: () => dpr, paused: () => paused,
+    dpr: () => dpr, paused: () => paused, frameRate: () => frameRate,
     renderMode: () => renderMode, precompiled: () => precompiled,
     restart: () => [seed, renderMode, precompiled, dpr],
     render: (buffer: RasterBuffer, clock: number) =>

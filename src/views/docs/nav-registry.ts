@@ -1,9 +1,8 @@
 /**
  * Docs navigation registry — the sidebar IA + section id list.
  *
- * Verbatim port of the `GROUPS` array in `src/pages/docs/DocsPage.vue` (script
- * section). Section ids are PERMANENT deep links — relabel freely, never
- * rename an id (docs/AGENTS.md).
+ * Port of the `GROUPS` array in `src/pages/docs/groups.ts`. Section ids are
+ * PERMANENT deep links — relabel freely, never rename an id (docs/AGENTS.md).
  *
  * The docs page renders every section pack on ONE long scrollable page; the
  * sidebar spreads these groups to render the rail, and the scroll-spy cycles
@@ -12,6 +11,9 @@
  * and scrolls to its section on mount).
  */
 import { FORM_NAV } from "./components/form-nav";
+import { FORMS_NAV } from "./components/forms-nav";
+import { PRIMITIVES_NAV } from "./components/primitives-nav";
+import { TYPOGRAPHY_NAV } from "./components/typography-nav";
 import { FEEDBACK_NAV } from "./components/feedback-nav";
 import { FIELD_NAV } from "./components/field-nav";
 import { SELECTION_NAV } from "./components/selection-nav";
@@ -37,10 +39,26 @@ import { ANIMATIONS_NAV } from "./animations/animations-nav";
 export type NavItem = { id: string; label: string };
 export type NavGroup = { title: string; items: NavItem[] };
 
+/**
+ * Upstream moved color-picker, tag-input, date-picker, mention-input and
+ * signature-pad from FORM_NAV into FORMS_NAV. The fork keeps them in FORM_NAV
+ * (FormDocs renders them), so the forms entries contribute only the ids
+ * FORM_NAV does not already own — section ids stay one flat, unique namespace.
+ */
+const FORM_IDS = new Set<string>(FORM_NAV.map((item) => item.id));
+
 export const GROUPS: NavGroup[] = [
   {
     title: "Overview",
     items: [{ id: "getting-started", label: "Quick start" }],
+  },
+  {
+    title: "Primitives",
+    items: [...PRIMITIVES_NAV],
+  },
+  {
+    title: "Typography",
+    items: [...TYPOGRAPHY_NAV],
   },
   {
     title: "Handbook",
@@ -85,6 +103,7 @@ export const GROUPS: NavGroup[] = [
       { id: "image", label: "Image" },
       ...FORM_NAV,
       ...FIELD_NAV,
+      ...FORMS_NAV.filter((item) => !FORM_IDS.has(item.id)),
       ...SELECTION_NAV,
       ...FEEDBACK_NAV,
       ...STRUCTURE_NAV,

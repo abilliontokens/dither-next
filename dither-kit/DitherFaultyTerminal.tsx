@@ -17,6 +17,7 @@ import {
   type PrecompiledDither,
 } from "./precompile";
 import { createRasterBuffer, putRasterBuffer, type RasterBuffer } from "./raster";
+import { frameIndex } from "./timing";
 import { useCanvasVisibility } from "./use-visibility";
 
 export type { FaultyTerminalParams } from "./faulty-terminal";
@@ -28,6 +29,7 @@ export interface DitherFaultyTerminalProps {
   digitSize?: number;
   timeScale?: number;
   pause?: boolean;
+  frameRate?: number;
   scanlineIntensity?: number;
   glitchAmount?: number;
   flickerAmount?: number;
@@ -82,6 +84,7 @@ export function DitherFaultyTerminal({
   digitSize = 1.2,
   timeScale = 1,
   pause = false,
+  frameRate = 0,
   scanlineIntensity = 1,
   glitchAmount = 1,
   flickerAmount = 1,
@@ -158,6 +161,7 @@ export function DitherFaultyTerminal({
     matrix,
     timeScale,
     pause,
+    frameRate,
     mouseReact,
     pageLoadAnimation,
     mouse: { x: 0.5, y: 0.5 },
@@ -167,6 +171,7 @@ export function DitherFaultyTerminal({
     matrix,
     timeScale,
     pause,
+    frameRate,
     mouseReact,
     pageLoadAnimation,
     mouse: stateRef.current.mouse, // preserve pointer across renders
@@ -214,6 +219,8 @@ export function DitherFaultyTerminal({
     let clock = 0;
     let loadStart = 0;
     let lastPaint = 0;
+    let lastFrame = -1;
+    const startNow = typeof performance !== "undefined" ? performance.now() : 0;
 
     const measure = (): CanvasRenderingContext2D | null => {
       if (!wrap || !canvas) return null;
@@ -251,11 +258,18 @@ export function DitherFaultyTerminal({
       if (!isVisible() || s.pause || renderMode === "static") return;
       const ctx = measure();
       if (!ctx) return;
-      if (now - lastPaint < FRAME_MS) {
+      // Stop-motion gate (Vue runtime `frameRate`): hold the last raster until
+      // wall time crosses the next fps boundary; 0 keeps the ~30fps throttle.
+      const fps = s.frameRate || 0;
+      const idx = fps > 0 ? frameIndex(now - startNow, fps) : -1;
+      if (fps > 0 ? idx === lastFrame : now - lastPaint < FRAME_MS) {
         raf = requestAnimationFrame(frame);
         return;
       }
-      const dt = lastPaint ? Math.min(0.1, (now - lastPaint) / 1000) : 0;
+      lastFrame = idx;
+      // At low cadence one frame can span >100ms; widen the dt clamp to two periods.
+      const cap = fps > 0 ? Math.max(0.1, 2 / fps) : 0.1;
+      const dt = lastPaint ? Math.min(cap, (now - lastPaint) / 1000) : 0;
       lastPaint = now;
       clock += dt * s.timeScale;
       if (!loadStart) loadStart = now;
@@ -268,6 +282,7 @@ export function DitherFaultyTerminal({
       const s = stateRef.current;
       if (!raf && !s.pause && renderMode !== "static" && isVisible()) {
         lastPaint = 0;
+        lastFrame = -1; // a resume paints immediately instead of waiting a boundary
         raf = requestAnimationFrame(frame);
       }
     };

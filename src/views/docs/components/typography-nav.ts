@@ -1,0 +1,32 @@
+// Nav items for the typography section pack. Verbatim port of
+// src/pages/docs/typography/typography-nav.ts — section ids are permanent deep
+// links. Upstream appends the formatter batch with a later `push`; here it is
+// folded into the one literal so the list stays `as const`.
+export const TYPOGRAPHY_NAV = [
+  { id: "heading", label: "Heading" },
+  { id: "label", label: "Label" },
+  { id: "caption", label: "Caption" },
+  { id: "overline", label: "Overline" },
+  { id: "code", label: "Code" },
+  { id: "kbd-combo", label: "KbdCombo" },
+  { id: "blockquote", label: "Blockquote" },
+  { id: "highlight", label: "Highlight" },
+  { id: "truncate", label: "Truncate" },
+  { id: "line-clamp", label: "LineClamp" },
+  { id: "middle-ellipsis", label: "MiddleEllipsis" },
+  { id: "ellipsis-tooltip", label: "EllipsisTooltip" },
+  { id: "link", label: "Link" },
+  { id: "external-link", label: "ExternalLink" },
+  { id: "selectable-text", label: "SelectableText" },
+  { id: "copyable-text", label: "CopyableText" },
+  // Batch 5: text formatters + time
+  { id: "number-text", label: "NumberText" },
+  { id: "currency-text", label: "CurrencyText" },
+  { id: "percent-text", label: "PercentText" },
+  { id: "file-size-text", label: "FileSizeText" },
+  { id: "duration-text", label: "DurationText" },
+  { id: "relative-time", label: "RelativeTime" },
+  { id: "date-time-text", label: "DateTimeText" },
+  { id: "plural-text", label: "PluralText" },
+  { id: "emoji", label: "Emoji" },
+] as const;

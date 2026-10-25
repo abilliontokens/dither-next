@@ -293,7 +293,8 @@ export function DitherTabs({
     }
     return vertical
       ? { left: "0px", top: `${marker.top}px`, width: "2px", height: `${marker.height}px` }
-      : { left: `${marker.left}px`, bottom: "0px", width: `${marker.width}px`, height: "2px" };
+      : // On the tab's own floor, not the container's: panels nest inside it.
+        { left: `${marker.left}px`, top: `${marker.top + marker.height - 2}px`, width: `${marker.width}px`, height: "2px" };
   }, [variant, vertical, marker]);
 
   const ctxValue = useMemo<TabsContextValue>(

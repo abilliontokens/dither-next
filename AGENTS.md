@@ -4,14 +4,15 @@
 
 Parallel Next.js port of the Vue 3 `dither-kit` + `src` app. Lives alongside
 the Vue app (which stays the source of truth) and does NOT touch it. The
-engine layer is ported verbatim from `../dither-kit`; 260 kit `.tsx`
+engine layer is ported verbatim from `../dither-kit`; 339 kit `.tsx`
 components (71 original + 99 new backgrounds/text-animations/animation-
 effects + 10 generative effects + chart infrastructure + DitherRadar +
-DitherFaultyTerminal + 38 ported interactive components + 45
-dither-next-exclusive components with no Vue origin) and all three app
-routes (landing, docs, studio) are ported. The kit matches the Vue kit
-component-for-component and leads it by those 45 exclusive components — all
-wired into the public barrel, the studio registry, and the docs.
+DitherFaultyTerminal + 38 ported interactive components + 40
+dither-next-exclusive components with no Vue origin + 84 components from the
+2026-10 upstream sync) and all three app routes (landing, docs, studio) are
+ported. The kit matches the Vue kit component-for-component and leads it by
+those 40 exclusive components — all wired into the public barrel, the studio
+registry, and the docs.
 
 - `dither-kit/` — the React kit: framework-agnostic TS (copied verbatim
   from the Vue kit) + Vue-reactivity→React conversions (contexts, hooks,
@@ -36,6 +37,31 @@ wired into the public barrel, the studio registry, and the docs.
     dpr scaling for all canvas backgrounds.
   - **New docs sections**: Backgrounds, Text, Animations (3 new docs pages
     with 98 new section deep links).
+  - **2026-10 upstream sync** (84 new `.tsx` + engine modules): 3D worlds
+    and GLSL shaders through the dither raster (`DitherWorld`,
+    `DitherShader`, `world.ts`, `world-gl.ts`, `gl.ts`, `shader.ts`), the
+    stage (`DitherStage`/`DitherLayer`/`DitherContainer`, `keyframes.ts`,
+    `containers.ts` resolveCq container queries), `DitherSequence`
+    (`sequence.ts` timeline algebra), `DitherReveal` (ordered wipes,
+    `wipe.ts`), `DitherFlowField`, `DitherThumbnail`, `DitherGrid`,
+    `frameRate` stop-motion prop on every shared-runtime background
+    (`timing.ts`), `useInviewLoop` perf gate on 8 cursor/text loops, the
+    17 primitives (Box/Text/Portal/FocusScope/Pressable/InView/...), the
+    60-glyph icon system (`DitherIcon`, `DitherIconSet`, `icons.ts`),
+    typography (16), formatters/time (9), and the 30-component forms pack
+    (Calendar, ColorPicker, DatePicker, Knob, TransferList, ...). The 5
+    former fork-exclusive stand-ins with the same names (ColorPicker,
+    DatePicker, MentionInput, SignaturePad, TagInput) were REPLACED by the
+    upstream implementations — exclusives drop 45 → 40. Also: standalone
+    stylesheet contract (`theme.css` tokens, `base.css` scoped base,
+    `kit.css` compiled by `npm run build:css` into
+    `public/kit/dither-kit.css`, `theme.ts` `applyTheme`/`themeVars`),
+    `models.ts`, `score.ts` (score audio), `clock.ts` (seekable kit clock),
+    tabs-underline/overlay-mono/command-Tab fixes. Engine file `radar.ts`
+    was renamed `radar-bg.ts` (Windows tsc: `./radar` vs `./Radar` chart
+    part collide case-insensitively); `Sequence.tsx`/`FlowField.tsx`/
+    `Thumbnail.tsx` are `DitherSequence.tsx`/`DitherFlowField.tsx`/
+    `DitherThumbnail.tsx` for the same reason.
 - `app/` — Next.js App Router routes: `layout.tsx` (root shell +
   `AppProviders`), `page.tsx` (landing), `docs/` (section SSG +
   `generateStaticParams`), `studio/` (client studio).
@@ -115,14 +141,17 @@ wired into the public barrel, the studio registry, and the docs.
 ## Verification
 
 - `cd dither-next && npx tsc --noEmit` green.
-- `cd dither-next && npm run test` — all 22 spec files pass (152 tests).
-  No new tests were added for the 99 new components: they are canvas-based
-  and were verified via a live browser smoke test, not unit tests.
+- `cd dither-next && npm run test` — all spec files pass. The
+  2026-10 sync components were verified via tsc + build + live docs
+  sections, matching the earlier canvas-component convention.
 - `cd dither-next && npm run build` succeeds; the docs route statically
-  generates one page per section id (264 deep links) plus `/` and `/studio`.
+  generates one page per section id (343 deep links) plus `/` and `/studio`.
 - `npm run dev` serves every route under Turbopack: `/`, `/studio` and all
-  264 `/docs/<section>` ids return 200, an unknown section returns 404
+  343 `/docs/<section>` ids return 200, an unknown section returns 404
   (`dynamicParams = false`). A run of webpack `next dev` instead 500s.
+- `npm run build:css` compiles `dither-kit/kit.css` →
+  `public/kit/dither-kit.css` (standalone stylesheet for non-Tailwind
+  consumers).
 - The Vue app (`../dither-kit`, `../src`) is untouched by this workstream.
 
 ## Child DOX Index

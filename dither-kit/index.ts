@@ -264,6 +264,8 @@ export { DitherAvatar, type AvatarMirror } from "./DitherAvatar"
 export { DitherButton, type ButtonVariant } from "./DitherButton"
 export { DitherGradient, type GradientDirection } from "./DitherGradient"
 export { DitherImage } from "./DitherImage"
+export { DitherThumbnail, type DitherThumbnailProps } from "./DitherThumbnail"
+export { DitherFlowField, paintFlowField, fadeRasterAlpha, type FlowFieldParams, type DitherFlowFieldProps } from "./DitherFlowField"
 export {
   DitherFaultyTerminal,
   type FaultyTerminalParams,
@@ -504,8 +506,6 @@ export { DitherMiniMap } from "./DitherMiniMap"
 export { DitherHeatCalendar, type DitherHeatValue } from "./DitherHeatCalendar"
 export { DitherGauge, type DitherGaugeSegment } from "./DitherGauge"
 // Inputs / fields
-export { DitherColorPicker } from "./DitherColorPicker"
-export { DitherTagInput } from "./DitherTagInput"
 export { DitherTerminalPrompt } from "./DitherTerminalPrompt"
 // Overlays
 export { DitherRadialMenu, type RadialItem } from "./DitherRadialMenu"
@@ -516,12 +516,10 @@ export { DitherCarousel } from "./DitherCarousel"
 
 // --- dither-next-exclusive components, batch 2 (no Vue origin) ---
 // Inputs
-export { DitherDatePicker, type DateISO, type DateSingleValue, type DateRangeValue, type DateValue, type DatePickerMode, type DitherDatePickerProps } from "./DitherDatePicker"
 export { DitherRangeSlider, type DitherRangeSliderProps } from "./DitherRangeSlider"
 export { DitherSegmented, type SegmentItem, type DitherSegmentedProps } from "./DitherSegmented"
 export { DitherTimePicker, type TimeValue, type DitherTimePickerProps } from "./DitherTimePicker"
 export { DitherDropzone, type DitherDropzoneProps } from "./DitherDropzone"
-export { DitherSignaturePad, type DitherSignaturePadProps } from "./DitherSignaturePad"
 // Display / data
 export { DitherProgressRing, type DitherProgressRingProps } from "./DitherProgressRing"
 export { DitherDataTable, type TableColumn, type DitherDataTableProps, type SortDir, type SortState } from "./DitherDataTable"
@@ -545,7 +543,6 @@ export { DitherMasonry, type DitherMasonryProps } from "./DitherMasonry"
 export { DitherOutline, type DitherOutlineProps, type DitherOutlineItem } from "./DitherOutline"
 // Inputs
 export { DitherImageCropper, type DitherImageCropperProps, type DitherImageCropperHandle, type CropRect } from "./DitherImageCropper"
-export { DitherMentionInput, type DitherMentionInputProps, type DitherMentionOption } from "./DitherMentionInput"
 export { DitherShortcutRecorder, type DitherShortcutRecorderProps } from "./DitherShortcutRecorder"
 // Overlays
 export { DitherTour, type DitherTourProps, type DitherTourStep } from "./DitherTour"
@@ -565,3 +562,203 @@ export { DitherFilterChip, type DitherFilterOption, type DitherFilterChipProps }
 export { DitherSlider2D, type DitherSlider2DValue, type DitherSlider2DProps } from "./DitherSlider2D"
 // Overlays
 export { DitherCommandQueue, type QueueVariant, type QueuePosition, type QueueAction, type QueueToast, type DitherCommandQueueProps } from "./DitherCommandQueue"
+
+// --- synced from upstream (2026-10): engine, stage & 3D worlds ---
+export {
+  DitherWorld,
+  type DitherWorldProps,
+  type DitherWorldHandle,
+  createWorldGpu,
+  createWorldMaterial,
+  externalResources,
+  formatOf,
+  packTarget,
+  packUv,
+  paintMaterial,
+  paintTarget,
+  paintWorld,
+  parseWorld,
+  rasterizeWorld,
+  sampleWorld,
+  type ModelFormat,
+  type World,
+  type WorldGpu,
+  type WorldMaterial,
+  type WorldMesh,
+  type WorldStyle,
+  type WorldTarget,
+  type WorldView,
+} from "./DitherWorld"
+export {
+  DitherShader,
+  type DitherShaderProps,
+  type DitherShaderHandle,
+  ditherShaderPixels,
+  sampleShader,
+  wrapShader,
+  type ShaderChannel,
+  type ShaderDither,
+  type ShaderProgram,
+} from "./DitherShader"
+export { wrapMaterial } from "./shader"
+export { bindChannel, createChannels, rasterOf, type ChannelInput, type Channels } from "./gl"
+export { surfaceOf, type DitherSurface } from "./use-dither-background"
+export {
+  DitherStage,
+  type DitherStageProps,
+  STAGE,
+  type StageContext,
+} from "./DitherStage"
+export { DitherLayer, type DitherLayerProps, type LayerSlot } from "./DitherLayer"
+export {
+  DitherContainer,
+  type DitherContainerProps,
+  type ContainerSlot,
+} from "./DitherContainer"
+export { DitherGrid, type DitherGridProps } from "./DitherGrid"
+export {
+  DitherSequence,
+  type DitherSequenceProps,
+} from "./DitherSequence"
+export {
+  DitherReveal,
+  type DitherRevealProps,
+  BAYER8,
+  bayerMatrix,
+  wipeStyle,
+  type WipeDirection,
+  type WipeOptions,
+  type WipeStyle,
+} from "./DitherReveal"
+export {
+  applyTheme,
+  THEME_TOKENS,
+  themeCss,
+  themeVars,
+  type ThemeInput,
+  type ThemeToken,
+  type ThemeVars,
+} from "./theme"
+export { linear, steps, frameSteps, frameIndex, cssSteps, type Easing, type StepPosition } from "./timing"
+export { directFromHyperframes, directedTime, isDirected, onSeek, release, seek, type SeekListener } from "./clock"
+export { planSequence, sampleSequence, staggerDelay } from "./sequence"
+export type {
+  SequenceNode,
+  SequencePlan,
+  ScheduledTrack,
+  TrackNode,
+  SerialNode,
+  ParallelNode,
+  StaggerNode,
+  StaggerFrom,
+  TrackSample,
+  TrackState,
+} from "./sequence"
+export { CONTAINER_SCALE, resolveCq, quantize, type CqRange, type CqScale, type CqState } from "./containers"
+export {
+  compileTrack,
+  keyframeTransform,
+  LENGTH_UNITS,
+  lerpTerms,
+  parseAngle,
+  parseLength,
+  resolveSample,
+  sampleKeyframes,
+  termsToCss,
+  termsToPx,
+  type CompiledTrack,
+  type CqBox,
+  type KeyEasing,
+  type Keyframe,
+  type KeyframeSample,
+  type KeyframeTrack,
+  type Length,
+  type LengthEnv,
+  type LengthUnit,
+  type Terms,
+} from "./keyframes"
+export { scoreCut, wavBytes, type ScoreAudio, type ScorePlan } from "./score"
+export { copyText } from "./lib"
+
+// --- synced from upstream (2026-10): primitives ---
+export { DitherBox, type DitherBoxProps } from "./DitherBox"
+export { DitherText, type DitherTextProps } from "./DitherText"
+export { DitherDivider, type DitherDividerProps } from "./DitherDivider"
+export { DitherVisuallyHidden, type DitherVisuallyHiddenProps } from "./DitherVisuallyHidden"
+export { DitherSvg, type DitherSvgProps } from "./DitherSvg"
+export { DitherImg, type DitherImgProps } from "./DitherImg"
+export { DitherSpacer, type DitherSpacerProps } from "./DitherSpacer"
+export { DitherPortal, type DitherPortalProps } from "./DitherPortal"
+export { DitherOverlay, type DitherOverlayProps } from "./DitherOverlay"
+export { DitherMeasure, type DitherMeasureProps } from "./DitherMeasure"
+export { DitherClipboard, type DitherClipboardProps } from "./DitherClipboard"
+export { DitherClickOutside, type DitherClickOutsideProps } from "./DitherClickOutside"
+export { DitherFocusRing, type DitherFocusRingProps } from "./DitherFocusRing"
+export { DitherFocusScope, type DitherFocusScopeProps } from "./DitherFocusScope"
+export { DitherHoverArea, type DitherHoverAreaProps } from "./DitherHoverArea"
+export { DitherPressable, type DitherPressableProps } from "./DitherPressable"
+export { DitherInView, type DitherInViewProps } from "./DitherInView"
+export { DitherIcon, type DitherIconProps } from "./DitherIcon"
+export { DitherIconSet, type DitherIconSetProps } from "./DitherIconSet"
+export { ICONS, ICON_NAMES, type IconName } from "./icons"
+
+// --- synced from upstream (2026-10): typography ---
+export { DitherHeading, type DitherHeadingProps } from "./DitherHeading"
+export { DitherLabel, type DitherLabelProps } from "./DitherLabel"
+export { DitherCaption, type DitherCaptionProps } from "./DitherCaption"
+export { DitherOverline, type DitherOverlineProps } from "./DitherOverline"
+export { DitherCode, type DitherCodeProps } from "./DitherCode"
+export { DitherKbdCombo, type DitherKbdComboProps } from "./DitherKbdCombo"
+export { DitherBlockquote, type DitherBlockquoteProps } from "./DitherBlockquote"
+export { DitherHighlight, type DitherHighlightProps } from "./DitherHighlight"
+export { DitherTruncate, type DitherTruncateProps } from "./DitherTruncate"
+export { DitherLineClamp, type DitherLineClampProps } from "./DitherLineClamp"
+export { DitherMiddleEllipsis, type DitherMiddleEllipsisProps } from "./DitherMiddleEllipsis"
+export { DitherEllipsisTooltip, type DitherEllipsisTooltipProps } from "./DitherEllipsisTooltip"
+export { DitherLink, type DitherLinkProps } from "./DitherLink"
+export { DitherExternalLink, type DitherExternalLinkProps } from "./DitherExternalLink"
+export { DitherSelectableText, type DitherSelectableTextProps } from "./DitherSelectableText"
+export { DitherCopyableText, type DitherCopyableTextProps } from "./DitherCopyableText"
+
+// --- synced from upstream (2026-10): formatters / time ---
+export { DitherNumberText, type DitherNumberTextProps } from "./DitherNumberText"
+export { DitherCurrencyText, type DitherCurrencyTextProps } from "./DitherCurrencyText"
+export { DitherPercentText, type DitherPercentTextProps } from "./DitherPercentText"
+export { DitherFileSizeText, type DitherFileSizeTextProps } from "./DitherFileSizeText"
+export { DitherDurationText, type DitherDurationTextProps } from "./DitherDurationText"
+export { DitherRelativeTime, type DitherRelativeTimeProps } from "./DitherRelativeTime"
+export { DitherDateTimeText, type DitherDateTimeTextProps } from "./DitherDateTimeText"
+export { DitherPluralText, type DitherPluralTextProps } from "./DitherPluralText"
+export { DitherEmoji, type DitherEmojiProps } from "./DitherEmoji"
+
+// --- synced from upstream (2026-10): forms pack ---
+export { DitherPasswordInput, type DitherPasswordInputProps } from "./DitherPasswordInput"
+export { DitherSearchInput, type DitherSearchInputProps } from "./DitherSearchInput"
+export { DitherEmailInput, type DitherEmailInputProps } from "./DitherEmailInput"
+export { DitherPhoneInput, type DitherPhoneInputProps } from "./DitherPhoneInput"
+export { DitherCurrencyInput, type DitherCurrencyInputProps } from "./DitherCurrencyInput"
+export { DitherScrubInput, type DitherScrubInputProps } from "./DitherScrubInput"
+export { DitherHotkeyInput, type DitherHotkeyInputProps } from "./DitherHotkeyInput"
+export { DitherCodeInput, type DitherCodeInputProps } from "./DitherCodeInput"
+export { DitherInputGroup, type DitherInputGroupProps } from "./DitherInputGroup"
+export { DitherInlineEdit, type DitherInlineEditProps } from "./DitherInlineEdit"
+export { DitherTagInput, type DitherTagInputProps } from "./DitherTagInput"
+export { DitherChoiceChips, type DitherChoiceChipsProps } from "./DitherChoiceChips"
+export { DitherCheckboxCard, type DitherCheckboxCardProps } from "./DitherCheckboxCard"
+export { DitherKeyValueInput, type DitherKeyValueInputProps, type DitherKeyValueRow } from "./DitherKeyValueInput"
+export { DitherMentionInput, type DitherMentionInputProps } from "./DitherMentionInput"
+export { DitherFileInput, type DitherFileInputProps } from "./DitherFileInput"
+export { DitherListBox, type DitherListBoxProps } from "./DitherListBox"
+export { DitherMultiSelect, type DitherMultiSelectProps } from "./DitherMultiSelect"
+export { DitherCascadeSelect, type DitherCascadeSelectProps, type DitherCascadeNode } from "./DitherCascadeSelect"
+export { DitherTransferList, type DitherTransferListProps } from "./DitherTransferList"
+export { DitherLanguageSelect, type DitherLanguageSelectProps } from "./DitherLanguageSelect"
+export { DitherIconPicker, type DitherIconPickerProps } from "./DitherIconPicker"
+export { DitherFontPicker, type DitherFontPickerProps } from "./DitherFontPicker"
+export { DitherCalendar, type DitherCalendarProps } from "./DitherCalendar"
+export { DitherDatePicker, type DitherDatePickerProps } from "./DitherDatePicker"
+export { DitherMonthPicker, type DitherMonthPickerProps } from "./DitherMonthPicker"
+export { DitherColorSwatch, type DitherColorSwatchProps } from "./DitherColorSwatch"
+export { DitherColorPicker, type DitherColorPickerProps } from "./DitherColorPicker"
+export { DitherKnob, type DitherKnobProps } from "./DitherKnob"
+export { DitherSignaturePad, type DitherSignaturePadProps } from "./DitherSignaturePad"

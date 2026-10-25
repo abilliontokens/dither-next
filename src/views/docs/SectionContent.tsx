@@ -14,6 +14,9 @@ import { NotificationsExamples } from "./examples/NotificationsExamples";
 import { ChartsDocs } from "./components/ChartsDocs";
 import { FormDocs } from "./components/FormDocs";
 import { FieldDocs } from "./components/FieldDocs";
+import { FormsDocs } from "./components/FormsDocs";
+import { PrimitivesDocs } from "./components/PrimitivesDocs";
+import { TypographyDocs } from "./components/TypographyDocs";
 import { SelectionDocs } from "./components/SelectionDocs";
 import { FeedbackDocs } from "./components/FeedbackDocs";
 import { StructureDocs } from "./components/StructureDocs";
@@ -30,8 +33,8 @@ import { AnimationsDocs } from "./animations/AnimationsDocs";
 /**
  * DocsSections — the entire docs body, every section pack concatenated on one
  * long scrollable page. Port of `src/pages/docs/DocsPage.vue`, which renders
- * all packs inline in nav-registry order (Overview · Handbook · Examples ·
- * Components · Utils).
+ * all packs inline in nav-registry order (Overview · Primitives · Typography ·
+ * Handbook · Examples · Components · Backgrounds · Text · Animations · Utils).
  *
  * The Vue docs is a SINGLE long page: the sidebar's IntersectionObserver
  * scroll-spy drives `activeId` as the reader scrolls top-to-bottom through
@@ -55,6 +58,8 @@ export function DocsSections() {
   return (
     <>
       <OverviewPack />
+      <PrimitivesDocs />
+      <TypographyDocs />
       <HandbookPack />
       <ExamplesCorePack />
       <AuthExamples />
@@ -67,6 +72,7 @@ export function DocsSections() {
       <ChartsDocs />
       <FormDocs />
       <FieldDocs />
+      <FormsDocs />
       <SelectionDocs />
       <FeedbackDocs />
       <StructureDocs />

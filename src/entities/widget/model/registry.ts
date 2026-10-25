@@ -1,4 +1,4 @@
-import type { PixelColor } from "@dither-kit";
+import { ICON_NAMES, type PixelColor } from "@dither-kit";
 
 export type PropSpec =
   | { key: string; kind: "text"; def: string }
@@ -50,6 +50,21 @@ const strList = (v: unknown): string[] =>
 const options = (v: unknown) => strList(v).map((label) => ({ value: label.toLowerCase().replace(/\s+/g, "-"), label }));
 const optionProps = (p: Record<string, unknown>) => ({ ...p, options: options(p.options) });
 const items = (labels: unknown) => strList(labels).map((label) => ({ label }));
+
+// Props that feed throwing browser APIs (Intl locale/currency tags, IntersectionObserver
+// margins) pick from known-good values: nothing catches errors around the canvas, so a
+// half-typed free-text value would throw on render/mount and take the whole studio down.
+const LOCALES = ["en-US", "en-GB", "de-DE", "fr-FR", "hi-IN", "ja-JP"] as const;
+const CURRENCIES = ["USD", "EUR", "GBP", "JPY", "INR"] as const;
+// The image widget's inline gradient, so fresh image frames render offline and under any basePath.
+const PLACEHOLDER_SRC =
+  "data:image/svg+xml," +
+  encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" width="320" height="240"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#358ff3"/><stop offset="1" stop-color="#f05abe"/></linearGradient></defs><rect width="320" height="240" fill="url(#g)"/></svg>',
+  );
+// container-type (size / inline-size) measures a shrink-to-fit box as 0, so the studio preview
+// stretches those wrappers over the frame; `style` is render-only (codegen emits spec keys).
+const fillFrame = (p: Record<string, unknown>) => ({ ...p, style: { width: "100%", height: "100%" } });
 
 /**
  * COMPONENT_REGISTRY — the Studio library source of truth.
@@ -254,9 +269,6 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
   { is: "DitherGooeyMenu", label: "Gooey menu", group: "display", frame: { w: 220, h: 280 }, props: [list("items", ["Add", "Export", "Share"]), select("direction", "up", ["up", "down", "left", "right"]), number("spacing", 52, 32, 100, 4)], vmodel: { def: false }, mapProps: (p) => ({ ...p, items: strList(p.items).map((label) => ({ value: label.toLowerCase(), label })) }) },
 
   // --- dither-next-exclusive components (no Vue origin) ---
-  // inputs
-  { is: "DitherColorPicker", label: "Color picker", group: "inputs", frame: { w: 240, h: 220 }, props: [text("value", "#5227FF"), text("label", "Accent")] },
-  { is: "DitherTagInput", label: "Tag input", group: "inputs", frame: { w: 300, h: 120 }, props: [list("value", ["vue", "canvas", "dither"]), list("suggestions", ["vue", "canvas", "react", "svelte", "solid"]), text("placeholder", "Add tag…"), text("label", "Tags"), bool("disabled")] },
   // structure
   { is: "DitherSplitPane", label: "Split pane", group: "structure", frame: { w: 360, h: 220 }, props: [color(), select("orientation", "horizontal", ["horizontal", "vertical"]), number("min", 20, 5, 45), number("max", 80, 55, 95)], slotText: "First pane" },
   // overlays
@@ -274,12 +286,10 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
 
   // --- dither-next-exclusive components, batch 2 (no Vue origin) ---
   // inputs
-  { is: "DitherDatePicker", label: "Date picker", group: "inputs", frame: { w: 300, h: 340 }, props: [color(), select("mode", "single", ["single", "range"]), number("weekStartsOn", 0, 0, 1, 1)], vmodel: { def: "2024-06-15", prop: "value", event: "onChange" }, mapProps: (p) => ({ color: p.color, mode: p.mode, weekStartsOn: p.weekStartsOn, value: "2024-06-15" }) },
   { is: "DitherRangeSlider", label: "Range slider", group: "inputs", frame: { w: 300, h: 110 }, props: [color(), number("min", 0), number("max", 100), number("step", 1, 0.1, undefined, 0.1), bool("showValues", true), bool("disabled")], vmodel: { def: [20, 80], prop: "value", event: "onChange" }, mapProps: (p) => { const lo = typeof p.min === "number" ? p.min : 0; const hi = typeof p.max === "number" ? p.max : 100; const span = hi - lo; return { color: p.color, min: lo, max: hi, step: p.step, showValues: p.showValues, disabled: p.disabled, value: [lo + span * 0.2, lo + span * 0.8] }; } },
   { is: "DitherSegmented", label: "Segmented", group: "inputs", frame: { w: 280, h: 80 }, props: [color(), list("segments", ["Day", "Week", "Month"])], vmodel: { def: "Day", prop: "value", event: "onChange" }, mapProps: (p) => { const segs = strList(p.segments); return { color: p.color, segments: segs, value: segs[0] ?? "" }; } },
   { is: "DitherTimePicker", label: "Time picker", group: "inputs", frame: { w: 240, h: 220 }, props: [color(), bool("hour12"), number("minuteStep", 1, 1, 30, 1), number("rows", 7, 3, 11, 2)], vmodel: { def: "09:30", prop: "value", event: "onChange" }, mapProps: (p) => ({ color: p.color, hour12: p.hour12, minuteStep: p.minuteStep, rows: p.rows, value: "09:30" }) },
   { is: "DitherDropzone", label: "Dropzone", group: "inputs", frame: { w: 300, h: 180 }, props: [color(), text("accept", "image/*"), bool("multiple"), number("maxSize", 5242880, 1024, 52428800), text("label", "Drop files here"), text("hint", "or click to browse")] },
-  { is: "DitherSignaturePad", label: "Signature pad", group: "inputs", frame: { w: 320, h: 200 }, props: [color("green"), number("size", 2, 1, 8, 1), number("height", 180, 120, 320, 4), text("label", "Sign here")] },
   // display
   { is: "DitherProgressRing", label: "Progress ring", group: "display", frame: { w: 160, h: 160 }, props: [number("value", 62, 0, 100), bool("indeterminate"), number("size", 96, 32, 240, 2), number("thickness", 6, 2, 24, 1), color(), text("label", "Progress"), bool("showValue", true)] },
   { is: "DitherDataTable", label: "Data table", group: "display", frame: { w: 380, h: 240 }, props: [color(), list("headers", ["Name", "Role", "Team"]), number("seed", 7, 0, 999999), bool("sortable", true), bool("filterable")], mapProps: (p) => { const headers = strList(p.headers); const columns = headers.map((key) => ({ key, label: key, sortable: true, filterable: true })); const sample = [["Ada", "Engineer", "Atlas"], ["Alan", "Designer", "Bayer"], ["Grace", "Lead", "Cosmic"], ["Lin", "Engineer", "Drift"]]; const rows = sample.map((vals, i) => { const r: Record<string, string> = { id: String(i + 1) }; headers.forEach((h, j) => { r[h] = vals[j % vals.length]; }); return r; }); return { color: p.color, seed: p.seed, sortable: p.sortable, filterable: p.filterable, columns, rows, getRowKey: (r: { id: string }) => r.id }; } },
@@ -302,8 +312,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
   // navigation
   { is: "DitherOutline", label: "Outline", group: "navigation", frame: { w: 240, h: 260 }, props: [list("items", ["Overview", "Installation", "Usage", "API", "Examples"]), number("offset", 0, 0, 200, 4), color(), number("seed", 7, 0, 999999)], mapProps: (p) => ({ color: p.color, seed: p.seed, offset: p.offset, items: strList(p.items).map((label, i) => ({ id: `heading-${i}`, label, depth: 0 })) }) },
   // inputs
-  { is: "DitherImageCropper", label: "Image cropper", group: "inputs", frame: { w: 340, h: 260 }, props: [text("src", "data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22320%22%20height%3D%22240%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22g%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23358ff3%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23f05abe%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Crect%20width%3D%22320%22%20height%3D%22240%22%20fill%3D%22url(%23g)%22%2F%3E%3C%2Fsvg%3E"), number("aspect", 0, 0, 4, 0.1), number("minSize", 0.05, 0.02, 0.5, 0.01)] },
-  { is: "DitherMentionInput", label: "Mention input", group: "inputs", frame: { w: 320, h: 180 }, props: [list("options", ["team", "design", "engineering", "product"]), text("placeholder", "Type @ to mention…"), text("trigger", "@"), number("rows", 4, 2, 10, 1), bool("disabled")], mapProps: (p) => ({ placeholder: p.placeholder, trigger: p.trigger, rows: p.rows, disabled: p.disabled, options: strList(p.options).map((label) => ({ value: label.toLowerCase(), label })) }) },
+  { is: "DitherImageCropper", label: "Image cropper", group: "inputs", frame: { w: 340, h: 260 }, props: [text("src", PLACEHOLDER_SRC), number("aspect", 0, 0, 4, 0.1), number("minSize", 0.05, 0.02, 0.5, 0.01)] },
   { is: "DitherShortcutRecorder", label: "Shortcut recorder", group: "inputs", frame: { w: 300, h: 100 }, props: [text("defaultChord", "Mod+K"), list("conflicts", ["Mod+S", "Mod+C"]), text("placeholder", "Click to record shortcut"), bool("disabled")] },
   // overlays
   { is: "DitherTour", label: "Tour", group: "overlays", frame: { w: 300, h: 160 }, props: [list("steps", ["Welcome", "Spotlight", "Finish"]), number("spotlightPad", 10, 0, 40, 2), number("scrimAlpha", 0.72, 0, 1, 0.02)], vmodel: { def: false }, demo: "dialog", mapProps: (p) => ({ spotlightPad: p.spotlightPad, scrimAlpha: p.scrimAlpha, steps: strList(p.steps).map((title, i) => ({ target: `[data-tour="${i}"]`, title, body: `${title} coach mark body.` })) }) },
@@ -322,6 +331,108 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
   { is: "DitherSlider2D", label: "Slider 2D", group: "inputs", frame: { w: 260, h: 280 }, props: [color(), bool("disabled"), number("width", 220, 120, 360, 4), number("height", 220, 120, 360, 4), text("label", "Position")], mapProps: (p) => ({ color: p.color, disabled: p.disabled, width: p.width, height: p.height, label: p.label, value: { x: 0.4, y: 0.7 }, onChange: () => {} }) },
   // overlays
   { is: "DitherCommandQueue", label: "Command queue", group: "overlays", frame: { w: 300, h: 200 }, props: [select("position", "top-right", ["top-right", "top-left", "bottom-right", "bottom-left"]), list("titles", ["Build passed", "New comment", "Disk 92% full"])], mapProps: (p) => { const variants = ["success", "info", "warning", "error"]; const toasts = strList(p.titles).map((title, i) => ({ id: i + 1, title, body: `${title} — open for detail.`, variant: variants[i % variants.length], duration: 0 })); return { position: p.position, toasts, onDismiss: () => {} }; } },
+
+  // --- synced from upstream (2026-10): engine, stage & 3D worlds ---
+  { is: "DitherWorld", label: "World (3D)", group: "display", frame: { w: 320, h: 240 }, props: [text("src", ""), text("source", ""), select("format", "auto", ["auto", "vrml", "x3d", "gltf", "obj", "stl", "ply", "off"]), select("engine", "auto", ["auto", "cpu", "gpu"]), color(), list("colors", []), number("dither", 1, 0, 1, 0.05), number("cell", 3, 1, 8, 1), number("autoRotate", 12, 0, 90, 1), number("yaw", 30, -180, 180, 1), number("pitch", 20, -89, 89, 1), number("zoom", 1, 0.3, 4, 0.1), number("fov", 40, 10, 120, 1), number("shade", 0.18, 0, 1, 0.02), number("fog", 0.3, 0, 1, 0.05), number("grain", 0, 0, 1, 0.05), number("grainScale", 4, 0.5, 16, 0.5), bool("material"), bool("wire"), text("shader", ""), select("bloom", "off", ["off", "low", "high", "aura"]), bool("animate", true), bool("interactive", true), number("frameRate", 0, 0, 60, 1), bool("paused")] },
+  { is: "DitherShader", label: "Shader (GLSL)", group: "display", frame: { w: 320, h: 240 }, props: [text("src", ""), text("source", ""), color(), list("colors", []), bool("mono"), number("dither", 1, 0, 1, 0.05), number("levels", 2, 2, 8, 1), number("shade", 0, 0, 1, 0.02), number("speed", 1, 0, 4, 0.1), number("cell", 3, 1, 8, 1), bool("interactive", true), number("frameRate", 0, 0, 60, 1), bool("paused")] },
+  // No demo: the studio has no composed stage + layers preview (upstream's), so the stage
+  // stretches over the frame around its slot text and a lone layer has no clock to play.
+  { is: "DitherStage", label: "Stage", group: "display", frame: { w: 320, h: 200 }, props: [number("duration", 6, 0, 60, 0.5), number("speed", 1, 0, 4, 0.1), number("frameRate", 0, 0, 60, 1), bool("paused")], slotText: "Layers ride this clock", mapProps: fillFrame },
+  { is: "DitherLayer", label: "Layer", group: "display", frame: { w: 320, h: 160 }, props: [number("duration", 3, 0.1, 30, 0.1), number("delay", 0, 0, 10, 0.1), bool("loop", true), bool("yoyo", true), text("origin", "50% 50%")], slotText: "a layer in container units" },
+  { is: "DitherContainer", label: "Container", group: "display", frame: { w: 300, h: 160 }, props: [text("name", "dither"), number("step", 0, 0, 64, 1)], slotText: "Children style themselves from this box. Resize it.", mapProps: fillFrame },
+  { is: "DitherGrid", label: "Grid", group: "structure", frame: { w: 340, h: 220 }, props: [number("min", 120, 80, 400), text("gap", "0.75rem")], slotText: "Card" },
+  { is: "DitherSequence", label: "Sequence", group: "display", frame: { w: 300, h: 140 }, props: [number("stagger", 0.06, 0, 1, 0.01), select("from", "start", ["start", "center", "end", "edges"]), number("duration", 0.5, 0.1, 5, 0.1), number("delay", 0, 0, 3, 0.1), number("loop", 1, 1, 10, 1), bool("yoyo"), bool("restartOnView"), bool("paused")], slotText: "Sequence" },
+  { is: "DitherReveal", label: "Dither reveal", group: "display", frame: { w: 260, h: 140 }, props: [number("duration", 1.2, 0.1, 10, 0.1), number("delay", 0, 0, 10, 0.1), select("direction", "none", ["none", "right", "left", "down", "up"]), number("cell", 4, 1, 16, 1), number("band", 12, 0, 40, 1), bool("reverse")], slotText: "Revealed" },
+  // standalone pixel surfaces
+  { is: "DitherFlowField", label: "Flow field", group: "display", frame: { w: 320, h: 220 }, props: [list("colors", ["#f4f8ff", "#c9dbff", "#7ba3ee"]), number("count", 2400, 200, 8000, 100), number("speed", 0.7, 0.05, 2, 0.05), number("scale", 1.4, 0.3, 6, 0.1), number("fade", 0.96, 0.5, 0.99, 0.01), number("glow", 1, 0.2, 4, 0.1), number("opacity", 1, 0, 1, 0.05), number("dither", 1, 0, 1, 0.05), select("mask", "radial", ["radial", "linear", "none"]), number("frameRate", 60, 0, 60, 1), bool("paused")] },
+  { is: "DitherThumbnail", label: "Thumbnail", group: "display", frame: { w: 260, h: 160 }, props: [text("src", PLACEHOLDER_SRC), text("alt", "Gradient placeholder"), text("href", "#"), text("ratio", "1.618"), number("veilCell", 4, 2, 12, 1)] },
+
+  // --- synced from upstream (2026-10): primitives ---
+  { is: "DitherBox", label: "Box", group: "structure", frame: { w: 260, h: 110 }, props: [select("as", "div", ["div", "section", "span", "article"])], slotText: "Box content" },
+  { is: "DitherText", label: "Text", group: "display", frame: { w: 300, h: 90 }, props: [select("as", "p", ["p", "span", "h3", "li"]), select("tone", "muted", ["default", "muted", "faint"]), select("size", "sm", ["xs", "sm", "md", "lg"])], slotText: "The quick brown fox" },
+  { is: "DitherDivider", label: "Divider", group: "structure", frame: { w: 240, h: 80 }, props: [select("orientation", "horizontal", ["horizontal", "vertical"])] },
+  { is: "DitherVisuallyHidden", label: "Visually hidden", group: "display", frame: { w: 280, h: 80 }, props: [bool("focusable")], slotText: "Visible to screen readers only" },
+  { is: "DitherSvg", label: "Svg", group: "display", frame: { w: 200, h: 90 }, props: [text("viewBox", "0 0 24 24"), text("label", "")] },
+  { is: "DitherImg", label: "Image", group: "display", frame: { w: 240, h: 140 }, props: [text("src", PLACEHOLDER_SRC), text("alt", "Gradient placeholder"), select("loading", "lazy", ["lazy", "eager"])] },
+  { is: "DitherSpacer", label: "Spacer", group: "structure", frame: { w: 200, h: 80 }, props: [select("axis", "y", ["y", "x"]), select("size", "md", ["xs", "sm", "md", "lg", "xl"])] },
+  // `to` keeps its "body" default: a half-typed selector would throw in querySelector.
+  { is: "DitherPortal", label: "Portal", group: "structure", frame: { w: 240, h: 100 }, props: [bool("disabled", true)], slotText: "Teleported content" },
+  { is: "DitherOverlay", label: "Overlay", group: "overlays", frame: { w: 260, h: 120 }, props: [select("dim", "soft", ["none", "soft", "medium", "strong"]), bool("interactive")] },
+  { is: "DitherMeasure", label: "Measure", group: "structure", frame: { w: 240, h: 100 }, props: [], slotText: "Measured content" },
+  { is: "DitherClipboard", label: "Clipboard", group: "display", frame: { w: 220, h: 90 }, props: [text("value", "copied to clipboard"), bool("disabled")], slotText: "Click to copy" },
+  { is: "DitherClickOutside", label: "Click outside", group: "structure", frame: { w: 240, h: 110 }, props: [bool("enabled", true)], slotText: "Press outside this" },
+  { is: "DitherFocusRing", label: "Focus ring", group: "structure", frame: { w: 240, h: 90 }, props: [], slotText: "Focus the control" },
+  { is: "DitherFocusScope", label: "Focus scope", group: "structure", frame: { w: 260, h: 130 }, props: [bool("autofocus"), bool("trapped"), bool("restoreFocus")], slotText: "Scoped content" },
+  { is: "DitherHoverArea", label: "Hover area", group: "structure", frame: { w: 240, h: 100 }, props: [], slotText: "Hover or focus" },
+  { is: "DitherPressable", label: "Pressable", group: "inputs", frame: { w: 200, h: 80 }, props: [select("type", "button", ["button", "submit", "reset"]), bool("disabled")], slotText: "Press me" },
+  { is: "DitherInView", label: "In view", group: "structure", frame: { w: 240, h: 110 }, props: [select("rootMargin", "200px", ["0px", "100px", "200px", "400px"]), number("threshold", 0, 0, 1, 0.05), bool("once", true)], slotText: "Reveals in view" },
+  { is: "DitherIcon", label: "Icon", group: "display", frame: { w: 160, h: 80 }, props: [select("name", "Check", ICON_NAMES), number("size", 16, 8, 48), number("strokeWidth", 2, 1, 3)] },
+  { is: "DitherIconSet", label: "Icon set", group: "display", frame: { w: 200, h: 80 }, props: [] },
+
+  // --- synced from upstream (2026-10): typography ---
+  { is: "DitherHeading", label: "Heading", group: "display", frame: { w: 280, h: 90 }, props: [select("level", "2", ["1", "2", "3", "4", "5", "6"])], slotText: "Section title" },
+  { is: "DitherLabel", label: "Label", group: "inputs", frame: { w: 200, h: 80 }, props: [bool("required")], slotText: "Email" },
+  { is: "DitherCaption", label: "Caption", group: "display", frame: { w: 240, h: 80 }, props: [select("tone", "muted", ["muted", "faint"])], slotText: "Uploaded 3 minutes ago" },
+  { is: "DitherOverline", label: "Overline", group: "display", frame: { w: 240, h: 80 }, props: [select("tone", "muted", ["muted", "faint"])], slotText: "Chapter 02" },
+  { is: "DitherCode", label: "Code", group: "display", frame: { w: 240, h: 80 }, props: [], slotText: "npm run build" },
+  { is: "DitherKbdCombo", label: "Kbd combo", group: "display", frame: { w: 220, h: 80 }, props: [list("keys", ["⌘", "K"]), text("separator", "+")], mapProps: (p) => ({ ...p, keys: strList(p.keys) }) },
+  { is: "DitherBlockquote", label: "Blockquote", group: "display", frame: { w: 320, h: 120 }, props: [], slotText: "The threshold is the style." },
+  { is: "DitherHighlight", label: "Highlight", group: "display", frame: { w: 260, h: 80 }, props: [], slotText: "highlighted inline" },
+  { is: "DitherTruncate", label: "Truncate", group: "display", frame: { w: 240, h: 80 }, props: [select("as", "span", ["span", "div"]), text("title", "")], slotText: "a file name that clips in this box" },
+  { is: "DitherLineClamp", label: "Line clamp", group: "display", frame: { w: 300, h: 120 }, props: [number("lines", 3, 1, 6, 1), select("as", "p", ["p", "span", "div"])], slotText: "Body copy that stops after N lines with an ellipsis…" },
+  { is: "DitherMiddleEllipsis", label: "Middle ellipsis", group: "display", frame: { w: 300, h: 80 }, props: [text("text", "src/views/docs/components/PrimitivesDocs.tsx"), number("head", 8, 2, 24), number("tail", 6, 2, 24), bool("title", true)] },
+  { is: "DitherEllipsisTooltip", label: "Ellipsis tooltip", group: "overlays", frame: { w: 260, h: 90 }, props: [bool("enabled", true), select("as", "span", ["span", "div"])], slotText: "Text that only tooltips while clipped" },
+  { is: "DitherLink", label: "Link", group: "display", frame: { w: 220, h: 80 }, props: [text("href", "#"), bool("external")], slotText: "Docs home" },
+  { is: "DitherExternalLink", label: "External link", group: "display", frame: { w: 240, h: 80 }, props: [text("href", "https://react.dev"), number("iconSize", 12, 8, 20)], slotText: "React docs" },
+  { is: "DitherSelectableText", label: "Selectable text", group: "display", frame: { w: 260, h: 80 }, props: [select("as", "span", ["span", "div"])], slotText: "sk_live_51NqH2vKf9X" },
+  { is: "DitherCopyableText", label: "Copyable text", group: "inputs", frame: { w: 240, h: 80 }, props: [text("value", "npm i d3-scale d3-shape clsx tailwind-merge"), text("label", "Copy"), number("size", 14, 8, 24)], slotText: "copy install" },
+
+  // --- synced from upstream (2026-10): formatters / time ---
+  { is: "DitherNumberText", label: "Number", group: "display", frame: { w: 240, h: 80 }, props: [number("value", 1234567.5), number("decimals", 2, 0, 4), select("locale", "en-US", LOCALES), bool("grouping", true)] },
+  { is: "DitherCurrencyText", label: "Currency", group: "display", frame: { w: 240, h: 80 }, props: [number("value", 1299.5), select("currency", "USD", CURRENCIES), select("locale", "en-US", LOCALES), number("decimals", 2, 0, 4)] },
+  { is: "DitherPercentText", label: "Percent", group: "display", frame: { w: 200, h: 80 }, props: [number("value", 0.42, 0, 1, 0.01), number("decimals", 0, 0, 3), select("locale", "en-US", LOCALES)] },
+  { is: "DitherFileSizeText", label: "File size", group: "display", frame: { w: 220, h: 80 }, props: [number("bytes", 1536, 0, 1099511627776), number("decimals", 1, 0, 3), select("locale", "en-US", LOCALES)] },
+  { is: "DitherDurationText", label: "Duration", group: "display", frame: { w: 240, h: 80 }, props: [number("ms", 80400000, 0, 172800000)] },
+  { is: "DitherRelativeTime", label: "Relative time", group: "display", frame: { w: 240, h: 80 }, props: [bool("auto", true), number("updateInterval", 30000, 1000, 300000)], mapProps: (p) => ({ ...p, date: Date.now() - 90_000 }) },
+  { is: "DitherDateTimeText", label: "Date time", group: "display", frame: { w: 260, h: 80 }, props: [text("date", "2026-10-07T15:04:00Z"), select("locale", "en-US", LOCALES)] },
+  { is: "DitherPluralText", label: "Plural", group: "display", frame: { w: 240, h: 80 }, props: [number("count", 1, 0, 99), select("locale", "en-US", LOCALES)], slotText: "results found" },
+  { is: "DitherEmoji", label: "Emoji", group: "display", frame: { w: 160, h: 80 }, props: [text("char", "🚀"), text("label", "launch")] },
+
+  // --- synced from upstream (2026-10): forms pack (replaced the fork-exclusive stand-ins) ---
+  { is: "DitherPasswordInput", label: "Password", group: "inputs", frame: { w: 280, h: 90 }, props: [text("placeholder", "At least 12 characters"), bool("invalid"), bool("disabled")], vmodel: { def: "correct-horse" } },
+  { is: "DitherSearchInput", label: "Search", group: "inputs", frame: { w: 280, h: 90 }, props: [text("placeholder", "Search…"), bool("disabled")], vmodel: { def: "dither" } },
+  { is: "DitherEmailInput", label: "Email", group: "inputs", frame: { w: 280, h: 90 }, props: [text("placeholder", "you@example.com"), text("autoComplete", "email"), bool("invalid"), bool("disabled")], vmodel: { def: "a@b.co" } },
+  { is: "DitherPhoneInput", label: "Phone", group: "inputs", frame: { w: 280, h: 90 }, props: [text("placeholder", "(555) 123-4567"), text("autoComplete", "tel"), bool("disabled")], vmodel: { def: "(415) 555-2671" } },
+  { is: "DitherCurrencyInput", label: "Currency input", group: "inputs", frame: { w: 280, h: 90 }, props: [text("prefix", "$"), select("locale", "en-US", LOCALES), text("placeholder", "0.00"), bool("invalid"), bool("disabled")], vmodel: { def: "1234567.5" } },
+  { is: "DitherScrubInput", label: "Scrub input", group: "inputs", frame: { w: 280, h: 90 }, props: [number("min", 0, -100, 100), number("max", 100, 0, 1000), number("step", 1, 0.1, 50, 0.1), bool("disabled")], vmodel: { def: 64 } },
+  { is: "DitherHotkeyInput", label: "Hotkey input", group: "inputs", frame: { w: 280, h: 90 }, props: [text("placeholder", "Press a shortcut…"), bool("disabled")], vmodel: { def: "Ctrl+Shift+K" } },
+  { is: "DitherCodeInput", label: "Code input", group: "inputs", frame: { w: 340, h: 170 }, props: [number("rows", 6, 2, 16), text("placeholder", "// paste or type…"), bool("disabled")], vmodel: { def: "const dither = bayer(4)" } },
+  // No vmodel: the group only frames the control in its slot (no value of its own);
+  // upstream's named prefix/suffix slots are plain props here.
+  { is: "DitherInputGroup", label: "Input group", group: "inputs", frame: { w: 320, h: 90 }, props: [text("prefix", "https://"), text("suffix", ".com")], slotText: "dither-ui" },
+  { is: "DitherInlineEdit", label: "Inline edit", group: "inputs", frame: { w: 280, h: 90 }, props: [text("placeholder", "—"), bool("disabled")], vmodel: { def: "bogdan" } },
+  { is: "DitherTagInput", label: "Tag input", group: "inputs", frame: { w: 320, h: 100 }, props: [text("placeholder", "Add tag…"), number("max", 8, 1, 20), bool("disabled")], vmodel: { def: ["vue", "dither"] } },
+  { is: "DitherChoiceChips", label: "Choice chips", group: "inputs", frame: { w: 300, h: 90 }, props: [list("options", ["S", "M", "L", "XL"]), bool("multiple"), bool("disabled")], vmodel: { def: "M" } },
+  { is: "DitherCheckboxCard", label: "Checkbox card", group: "inputs", frame: { w: 300, h: 120 }, props: [text("label", "Telemetry"), text("description", "Anonymous usage stats"), bool("disabled")], vmodel: { def: true } },
+  { is: "DitherKeyValueInput", label: "Key/value input", group: "inputs", frame: { w: 360, h: 130 }, props: [bool("disabled")], vmodel: { def: [{ key: "Content-Type", value: "application/json" }] } },
+  { is: "DitherMentionInput", label: "Mention input", group: "inputs", frame: { w: 340, h: 150 }, props: [list("options", ["dana", "darius", "sam"]), number("rows", 3, 2, 10), text("placeholder", "Write… use @ to mention"), bool("disabled")], vmodel: { def: "cc @da" } },
+  { is: "DitherFileInput", label: "File input", group: "inputs", frame: { w: 320, h: 170 }, props: [bool("multiple"), text("accept", "image/*"), text("buttonLabel", "Choose files"), bool("disabled")], vmodel: { def: [] } },
+  { is: "DitherListBox", label: "List box", group: "inputs", frame: { w: 260, h: 160 }, props: [list("options", ["Kyoto", "Seoul", "Taipei"]), bool("disabled")], vmodel: { def: "Seoul" } },
+  { is: "DitherMultiSelect", label: "Multi select", group: "inputs", frame: { w: 300, h: 220 }, props: [list("options", ["vue", "dither", "canvas", "tokens"]), text("placeholder", "Search…"), bool("disabled")], vmodel: { def: ["vue"] } },
+  { is: "DitherCascadeSelect", label: "Cascade select", group: "inputs", frame: { w: 360, h: 90 }, props: [bool("disabled")], vmodel: { def: ["Japan", "Kansai"] }, mapProps: (p) => ({ ...p, tree: [{ value: "Japan", children: [{ value: "Kansai", children: [{ value: "Kyoto" }, { value: "Osaka" }] }] }] }) },
+  { is: "DitherTransferList", label: "Transfer list", group: "inputs", frame: { w: 420, h: 190 }, props: [text("sourceLabel", "Available"), text("targetLabel", "Selected"), bool("disabled")], vmodel: { def: ["admin"] }, mapProps: (p) => ({ ...p, source: ["admin", "editor", "viewer", "billing", "support"] }) },
+  { is: "DitherLanguageSelect", label: "Language select", group: "inputs", frame: { w: 260, h: 90 }, props: [bool("includeDefault"), text("defaultLabel", "System default"), bool("disabled")], vmodel: { def: "ja" } },
+  { is: "DitherIconPicker", label: "Icon picker", group: "inputs", frame: { w: 300, h: 200 }, props: [number("size", 16, 8, 32), text("placeholder", "Filter icons…"), bool("disabled")], vmodel: { def: "Check" } },
+  { is: "DitherFontPicker", label: "Font picker", group: "inputs", frame: { w: 300, h: 300 }, props: [bool("disabled")], vmodel: { def: "system-ui, -apple-system, 'Segoe UI', sans-serif" } },
+  { is: "DitherCalendar", label: "Calendar", group: "inputs", frame: { w: 260, h: 280 }, props: [text("min", ""), text("max", ""), bool("disabled")], vmodel: { def: "2026-10-07" } },
+  { is: "DitherDatePicker", label: "Date picker", group: "inputs", frame: { w: 280, h: 300 }, props: [text("placeholder", "YYYY-MM-DD"), text("min", ""), text("max", ""), bool("disabled")], vmodel: { def: "2026-10-07" } },
+  { is: "DitherMonthPicker", label: "Month picker", group: "inputs", frame: { w: 240, h: 180 }, props: [bool("disabled")], vmodel: { def: "2026-10" } },
+  { is: "DitherColorSwatch", label: "Color swatch", group: "inputs", frame: { w: 220, h: 90 }, props: [text("color", "#5227FF"), text("label", "Iris"), bool("selected"), number("size", 24, 12, 64), bool("disabled")] },
+  { is: "DitherColorPicker", label: "Color picker", group: "inputs", frame: { w: 260, h: 270 }, props: [bool("disabled")], vmodel: { def: "#5227FF" } },
+  { is: "DitherKnob", label: "Knob", group: "inputs", frame: { w: 240, h: 140 }, props: [number("min", 0, -100, 100), number("max", 100, 0, 1000), number("step", 1, 0.1, 50, 0.1), number("size", 72, 40, 128), bool("disabled")], vmodel: { def: 64 } },
+  // No vmodel: the pad has no value prop (upstream's v-model only listens), so a
+  // value/onChange pair would export an invalid prop and park the dataURL on the root.
+  { is: "DitherSignaturePad", label: "Signature pad", group: "inputs", frame: { w: 440, h: 230 }, props: [number("width", 420, 200, 800), number("height", 160, 80, 400), bool("disabled")] },
 ];
 
 export const componentEntry = (is: string): ComponentEntry | undefined =>

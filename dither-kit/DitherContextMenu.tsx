@@ -123,7 +123,7 @@ export function DitherContextMenu({ items, onSelect, children }: DitherContextMe
             tabIndex={-1}
             className={cn(
               styles.popPanel,
-              "fixed z-[100] min-w-[180px] rounded-lg border border-border bg-card p-1 text-foreground shadow-[0_12px_40px_-12px_rgba(0,0,0,0.7)] outline-none",
+              "fixed z-[100] min-w-[180px] rounded-lg border border-border bg-card p-1 font-mono text-foreground shadow-[0_12px_40px_-12px_rgba(0,0,0,0.7)] outline-none",
               pos === null && styles.popHide,
             )}
             style={{ left: `${pos.x}px`, top: `${pos.y}px` }}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useRef } from "react";
-import { paintRadar, type RadarParams } from "./radar";
+import { paintRadar, type RadarParams } from "./radar-bg";
 import { cn } from "./lib";
 import { BAYER4, clamp01, pixelMatrixFromSeed } from "./pixel";
 import { hexToRgb } from "./palette";
@@ -9,8 +9,8 @@ import type { RasterBuffer } from "./raster";
 import { precompiledSrc, type DitherRenderMode, type PrecompiledDither } from "./precompile";
 import { useDitherBackground } from "./use-dither-background";
 
-export type { RadarParams } from "./radar";
-export { paintRadar } from "./radar";
+export type { RadarParams } from "./radar-bg";
+export { paintRadar } from "./radar-bg";
 
 export interface DitherRadarProps {
   colors?: string[];
@@ -21,6 +21,7 @@ export interface DitherRadarProps {
   opacity?: number;
   dither?: number | boolean;
   paused?: boolean;
+  frameRate?: number;
   dpr?: number;
   mixBlendMode?: string;
   seed?: number;
@@ -42,6 +43,7 @@ export function DitherRadar({
   opacity = 1,
   dither = 1,
   paused = false,
+  frameRate = 0,
   dpr,
   mixBlendMode,
   seed,
@@ -67,7 +69,7 @@ export function DitherRadar({
   useDitherBackground({
     wrapRef, canvasRef,
     cell: CELL, maxCols: MAX_COLS, maxRows: MAX_ROWS,
-    dpr: () => dpr, paused: () => paused,
+    dpr: () => dpr, paused: () => paused, frameRate: () => frameRate,
     renderMode: () => renderMode, precompiled: () => precompiled,
     restart: () => [seed, renderMode, precompiled, dpr],
     render: (buffer: RasterBuffer, clock: number) => paintRadar(buffer, params, clock, matrix),

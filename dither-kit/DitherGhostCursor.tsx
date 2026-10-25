@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 
 import { cn } from "./lib";
 import { pixelPrefersReducedMotion } from "./pixel";
+import { useInviewLoop } from "./use-inview-loop";
 
 export interface DitherGhostCursorProps {
   color?: string;
@@ -79,16 +80,30 @@ export function DitherGhostCursor({
     ctx.globalAlpha = 1;
   }
 
+  function start() {
+    if (rafRef.current || pixelPrefersReducedMotion()) return;
+    rafRef.current = requestAnimationFrame(frame);
+  }
+  function stop() {
+    if (!rafRef.current) return;
+    cancelAnimationFrame(rafRef.current);
+    rafRef.current = 0;
+  }
+
   useEffect(() => {
     resize();
     const ro = new ResizeObserver(resize);
     if (wrapRef.current) ro.observe(wrapRef.current);
-    if (!pixelPrefersReducedMotion()) rafRef.current = requestAnimationFrame(frame);
+    // Props changed: hand a running loop the fresh frame closure.
+    if (rafRef.current) {
+      cancelAnimationFrame(rafRef.current);
+      rafRef.current = requestAnimationFrame(frame);
+    }
     return () => {
-      if (rafRef.current) cancelAnimationFrame(rafRef.current);
       ro.disconnect();
     };
   }, [count, size, color]);
+  useInviewLoop(wrapRef, start, stop);
 
   return (
     <div

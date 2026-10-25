@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 
 import { cn } from "./lib";
 import { pixelPrefersReducedMotion } from "./pixel";
+import { useInviewLoop } from "./use-inview-loop";
 
 export interface DitherBlobCursorProps {
   color?: string;
@@ -57,13 +58,24 @@ export function DitherBlobCursor({
     b.style.transform = `translate(${p.x}px, ${p.y}px) translate(-50%, -50%) scale(${m.active ? 1 : 0})`;
   }
 
-  useEffect(() => {
-    if (pixelPrefersReducedMotion()) return;
+  function start() {
+    if (rafRef.current || pixelPrefersReducedMotion()) return;
     rafRef.current = requestAnimationFrame(frame);
-    return () => {
-      if (rafRef.current) cancelAnimationFrame(rafRef.current);
-    };
+  }
+  function stop() {
+    if (!rafRef.current) return;
+    cancelAnimationFrame(rafRef.current);
+    rafRef.current = 0;
+  }
+
+  // `lag` changed: hand a running loop the fresh frame closure.
+  useEffect(() => {
+    if (!rafRef.current) return;
+    cancelAnimationFrame(rafRef.current);
+    rafRef.current = requestAnimationFrame(frame);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lag]);
+  useInviewLoop(areaRef, start, stop);
 
   return (
     <div

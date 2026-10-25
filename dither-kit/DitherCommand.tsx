@@ -124,6 +124,13 @@ export function DitherCommand({
       onClose?.();
       return;
     }
+    // Modal: Tab never leaves the palette — the input is its one field and
+    // the list is driven by the arrow keys.
+    if (e.key === "Tab") {
+      e.preventDefault();
+      inputRef.current?.focus();
+      return;
+    }
     const n = flat.length;
     if (!n) return;
     if (e.key === "ArrowDown") {

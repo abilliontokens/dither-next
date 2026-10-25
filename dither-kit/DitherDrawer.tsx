@@ -309,7 +309,7 @@ export function DitherDrawer({
           aria-label={title}
           className={cn(
             slideClass,
-            "fixed z-50 flex flex-col border-border bg-card p-4",
+            "fixed z-50 flex flex-col border-border bg-card p-4 font-mono",
             side === "bottom"
               ? "inset-x-0 bottom-0 rounded-t-xl border-t"
               : "inset-y-0 w-80 max-w-[85vw]",

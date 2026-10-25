@@ -22,6 +22,7 @@ export interface DitherBeamsProps {
   opacity?: number;
   dither?: number | boolean;
   paused?: boolean;
+  frameRate?: number;
   dpr?: number;
   mixBlendMode?: string;
   seed?: number;
@@ -44,6 +45,7 @@ export function DitherBeams({
   opacity = 1,
   dither = 1,
   paused = false,
+  frameRate = 0,
   dpr,
   mixBlendMode,
   seed,
@@ -81,6 +83,7 @@ export function DitherBeams({
     maxRows: MAX_ROWS,
     dpr: () => dpr,
     paused: () => paused,
+    frameRate: () => frameRate,
     renderMode: () => renderMode,
     precompiled: () => precompiled,
     restart: () => [seed, renderMode, precompiled, dpr],

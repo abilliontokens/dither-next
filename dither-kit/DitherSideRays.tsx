@@ -23,6 +23,7 @@ export interface DitherSideRaysProps {
   opacity?: number;
   dither?: number | boolean;
   paused?: boolean;
+  frameRate?: number;
   dpr?: number;
   mixBlendMode?: string;
   seed?: number;
@@ -46,6 +47,7 @@ export function DitherSideRays({
   opacity = 1,
   dither = 1,
   paused = false,
+  frameRate = 0,
   dpr,
   mixBlendMode,
   seed,
@@ -85,6 +87,7 @@ export function DitherSideRays({
     maxRows: MAX_ROWS,
     dpr: () => dpr,
     paused: () => paused,
+    frameRate: () => frameRate,
     renderMode: () => renderMode,
     precompiled: () => precompiled,
     restart: () => [seed, side, renderMode, precompiled, dpr],

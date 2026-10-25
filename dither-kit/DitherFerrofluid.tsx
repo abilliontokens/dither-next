@@ -42,6 +42,7 @@ export interface DitherFerrofluidProps {
   mouseDampening?: number;
   mixBlendMode?: string;
   paused?: boolean;
+  frameRate?: number;
   dpr?: number;
   seed?: number;
   renderMode?: DitherRenderMode;
@@ -73,6 +74,7 @@ export function DitherFerrofluid({
   mouseDampening = 0.15,
   mixBlendMode,
   paused = false,
+  frameRate = 0,
   dpr,
   seed,
   renderMode = "live",
@@ -110,7 +112,7 @@ export function DitherFerrofluid({
   useDitherBackground({
     wrapRef, canvasRef,
     cell: CELL, maxCols: MAX_COLS, maxRows: MAX_ROWS,
-    dpr: () => dpr, paused: () => paused,
+    dpr: () => dpr, paused: () => paused, frameRate: () => frameRate,
     renderMode: () => renderMode, precompiled: () => precompiled,
     restart: () => [seed, renderMode, precompiled, dpr],
     render: (buffer: RasterBuffer, clock: number, dt: number) => {

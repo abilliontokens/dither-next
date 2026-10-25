@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 
 import { cn } from "./lib";
 import { pixelPrefersReducedMotion } from "./pixel";
+import { useInviewLoop } from "./use-inview-loop";
 
 export interface DitherAntigravityProps {
   color?: string;
@@ -79,19 +80,33 @@ export function DitherAntigravity({
     ctx.globalAlpha = 1;
   }
 
+  function start() {
+    if (rafRef.current || pixelPrefersReducedMotion()) return;
+    rafRef.current = requestAnimationFrame(frame);
+  }
+  function stop() {
+    if (!rafRef.current) return;
+    cancelAnimationFrame(rafRef.current);
+    rafRef.current = 0;
+  }
+
   useEffect(() => {
     resize();
     init();
     const ro = new ResizeObserver(() => resize());
     if (wrapRef.current) ro.observe(wrapRef.current);
-    if (!pixelPrefersReducedMotion()) rafRef.current = requestAnimationFrame(frame);
+    // Props changed: hand a running loop the fresh frame closure.
+    if (rafRef.current) {
+      cancelAnimationFrame(rafRef.current);
+      rafRef.current = requestAnimationFrame(frame);
+    }
     return () => {
-      if (rafRef.current) cancelAnimationFrame(rafRef.current);
       ro.disconnect();
     };
     // init reads sizeRef set by resize; both run synchronously above.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [count, speed, color]);
+  useInviewLoop(wrapRef, start, stop);
 
   return (
     <div ref={wrapRef} className={cn("relative overflow-hidden", className)}>

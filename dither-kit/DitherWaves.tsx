@@ -25,6 +25,7 @@ export interface DitherWavesProps {
   mouseInteraction?: boolean;
   mouseStrength?: number;
   paused?: boolean;
+  frameRate?: number;
   dpr?: number;
   mixBlendMode?: string;
   seed?: number;
@@ -50,6 +51,7 @@ export function DitherWaves({
   mouseInteraction = true,
   mouseStrength = 0.6,
   paused = false,
+  frameRate = 0,
   dpr,
   mixBlendMode,
   seed,
@@ -90,6 +92,7 @@ export function DitherWaves({
     maxRows: MAX_ROWS,
     dpr: () => dpr,
     paused: () => paused,
+    frameRate: () => frameRate,
     renderMode: () => renderMode,
     precompiled: () => precompiled,
     restart: () => [seed, renderMode, precompiled, dpr],

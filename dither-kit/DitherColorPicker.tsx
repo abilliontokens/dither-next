@@ -1,402 +1,230 @@
 "use client";
 
-import {
-  useEffect,
-  useId,
-  useMemo,
-  useRef,
-  useState,
-  type KeyboardEvent,
-  type PointerEvent as ReactPointerEvent,
-} from "react";
-import { CONTROL } from "./control";
-import { cn } from "./lib";
-import { cssColor, colorToHex, hexToRgb, hexToHsv, hsvToRgb, rgbToHex } from "./palette";
-import { BAYER4, clamp01, type PixelColor } from "./pixel";
+import { useEffect, useRef, type HTMLAttributes, type KeyboardEvent, type PointerEvent } from "react";
 
-const CELL = 2;
-const LEVELS = 4;
-const SV_STEP = 0.02;
-const SV_STEP_COARSE = 0.1;
-const HUE_STEP = 2;
-const HUE_STEP_COARSE = 15;
+import { cn, round } from "./lib";
 
-/** Named kit swatches + achromatic bookends, resolved through `colorToHex`. */
-const SWATCHES: PixelColor[] = [
-  "red",
-  "orange",
-  "green",
-  "blue",
-  "purple",
-  "pink",
-  "grey",
-  "#000000",
-  "#ffffff",
-];
-
-/**
- * Ordered-dither a single colour channel to `LEVELS` discrete steps. Classic
- * Bayer quantization: the threshold scatter (`t − 0.5`) folds the continuous
- * value onto the nearest of `LEVELS` levels so a gradient reads as the kit's
- * signature stipple rather than a smooth alpha ramp. Mirrors the texture the
- * charts/slider paint with via `BAYER4`.
- */
-function ditherChannel(c: number, t: number): number {
-  const offset = (t - 0.5) / LEVELS;
-  const v = c + offset;
-  const clamped = v < 0 ? 0 : v > 1 ? 1 : v;
-  return Math.round(clamped * (LEVELS - 1)) / (LEVELS - 1);
-}
-
-export interface DitherColorPickerProps {
-  /** Controlled colour as a `#rrggbb` hex string. */
-  value: string;
-  /** Fired with a normalised `#rrggbb` hex string on every change. */
-  onChange?: (hex: string) => void;
-  /** Accessible name for the whole picker. */
-  label?: string;
+/** HSV color field: a saturation/value plane over the current hue, a hue
+ * strip, and a hex readout input — pointer-driven, keyboard on the plane
+ * (arrows nudge S/V). Model is the hex string.
+ * Port of ColorPicker.vue (`update:modelValue` → `onChange`). Drag listeners
+ * read the latest value through a ref (Vue's live props) and are removed on
+ * unmount; cursor percentages are rounded for hydration parity. The hex input
+ * is a controlled React input, so a keystroke that does not form a hex prefix
+ * is refused instead of lingering in the field. */
+export interface DitherColorPickerProps extends Omit<HTMLAttributes<HTMLDivElement>, "onChange"> {
+  value?: string;
+  disabled?: boolean;
+  onChange?: (value: string) => void;
   className?: string;
 }
 
-/**
- * DitherColorPicker — HSV colour picker whose saturation/value field and hue
- * rail are painted through the kit's ordered-dither engine, so the surface
- * reads as Bayer pixels instead of a smooth alpha gradient.
- *
- * The SV field is a low-resolution canvas (1 device-px per 2-CSS-px cell,
- * stretched with `image-rendering: pixelated` — same trick as `DitherSlider`)
- * where each cell is `hsvToRgb(hue, s, v)` quantised to four levels per channel
- * through `BAYER4`. The hue rail uses the same dither along its spectrum so
- * the pair share one texture.
- *
- * Colour math is reused verbatim from `./palette` (`hexToHsv`/`hsvToRgb`/
- * `rgbToHex`/`colorToHex`) — no local colour code. A held hue (`fieldHue`)
- * survives picking an achromatic swatch (white/black/grey) so the field does
- * not snap to red when the value channel bottoms out — the standard picker
- * behaviour. `fieldHue` lives in state because it drives the painted canvas.
- *
- * Pointer drag uses `setPointerCapture` on each surface. The SV field is a
- * labelled, focusable region with arrow nudging (Shift = coarse) and a live
- * hex/hsv readout; the hue rail is a proper `role="slider"` with arrows plus
- * Home/End. Reduced motion is read in a mount effect (the crosshair has no
- * motion to suppress, but the contract is honoured for any focus transition).
- */
+const HUE_STRIP = {
+  background: "linear-gradient(to right, #f00 0%, #ff0 17%, #0f0 33%, #0ff 50%, #00f 67%, #f0f 83%, #f00 100%)",
+};
+
+function hexToHsv(hex: string): [number, number, number] {
+  const m = /^#?([0-9a-f]{6})$/i.exec(hex.trim());
+  if (!m) return [0, 0, 0];
+  const int = parseInt(m[1], 16);
+  const r = ((int >> 16) & 255) / 255;
+  const g = ((int >> 8) & 255) / 255;
+  const b = (int & 255) / 255;
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const d = max - min;
+  let h = 0;
+  if (d !== 0) {
+    if (max === r) h = ((g - b) / d) % 6;
+    else if (max === g) h = (b - r) / d + 2;
+    else h = (r - g) / d + 4;
+    h *= 60;
+    if (h < 0) h += 360;
+  }
+  return [h, max === 0 ? 0 : d / max, max];
+}
+
+function hsvToHex(h: number, s: number, v: number): string {
+  const c = v * s;
+  const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
+  const m = v - c;
+  const [r, g, b] =
+    h < 60
+      ? [c, x, 0]
+      : h < 120
+        ? [x, c, 0]
+        : h < 180
+          ? [0, c, x]
+          : h < 240
+            ? [0, x, c]
+            : h < 300
+              ? [x, 0, c]
+              : [c, 0, x];
+  const to = (n: number) =>
+    Math.round((n + m) * 255)
+      .toString(16)
+      .padStart(2, "0");
+  return `#${to(r)}${to(g)}${to(b)}`;
+}
+
+const clamp01 = (n: number) => Math.min(1, Math.max(0, n));
+
+type Point = { clientX: number; clientY: number };
+
 export function DitherColorPicker({
-  value,
+  value = "#5227FF",
+  disabled = false,
   onChange,
-  label = "Colour picker",
   className,
+  ...rest
 }: DitherColorPickerProps) {
-  const rootRef = useRef<HTMLDivElement | null>(null);
-  const fieldCanvasRef = useRef<HTMLCanvasElement | null>(null);
-  const hueCanvasRef = useRef<HTMLCanvasElement | null>(null);
-  const fieldRef = useRef<HTMLDivElement | null>(null);
-  const hueRef = useRef<HTMLDivElement | null>(null);
+  const hsv = hexToHsv(value);
+  const hueColor = hsvToHex(hsv[0], 1, 1);
 
-  const reactId = useId();
-  const readoutId = `${reactId}-readout`;
-  const hexInputId = `${reactId}-hex`;
+  const planeEl = useRef<HTMLDivElement | null>(null);
+  const hueEl = useRef<HTMLDivElement | null>(null);
+  // Window drag listeners outlive the render that attached them; they read the
+  // live hsv/disabled/onChange here, as Vue's handlers read props.
+  const latest = useRef({ hsv, disabled, onChange });
+  latest.current = { hsv, disabled, onChange };
+  const stopTracking = useRef<(() => void) | null>(null);
 
-  // Derive the current HSV from the controlled value. `hexToHsv` returns a
-  // stable {h,s,v}; h is 0 when the colour is achromatic.
-  const hsv = useMemo(() => hexToHsv(value), [value]);
+  useEffect(() => () => stopTracking.current?.(), []);
 
-  // The hue the field paints with. Synced from `value` only when the colour is
-  // chromatic, so picking white/black keeps the last meaningful hue. State, not
-  // a ref, because it drives the canvas repaint.
-  const [fieldHue, setFieldHue] = useState<number>(hsv.h);
-  useEffect(() => {
-    if (hsv.s > 0.001 && hsv.v > 0.001 && Math.abs(hsv.h - fieldHue) > 0.5) {
-      setFieldHue(hsv.h);
-    }
-    // `fieldHue` intentionally excluded — we only react to the source value.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [value]);
-
-  // Local draft for the hex input so typing a partial hex does not snap back.
-  const [hexDraft, setHexDraft] = useState(value);
-  const [hexFocused, setHexFocused] = useState(false);
-  useEffect(() => {
-    if (!hexFocused) setHexDraft(value);
-  }, [value, hexFocused]);
-  function commit(h: number, s: number, v: number): void {
-    onChange?.(rgbToHex(hsvToRgb(h, s, v)));
+  function fromPlane(e: Point): void {
+    const el = planeEl.current;
+    const { hsv: live, disabled: off, onChange: emit } = latest.current;
+    if (!el || off) return;
+    const rect = el.getBoundingClientRect();
+    const s = clamp01((e.clientX - rect.left) / Math.max(1, rect.width));
+    const v = 1 - clamp01((e.clientY - rect.top) / Math.max(1, rect.height));
+    emit?.(hsvToHex(live[0], s, v));
   }
 
-  /** Paint the saturation/value field through the Bayer dither. */
-  function paintField(): void {
-    const root = fieldRef.current;
-    const canvas = fieldCanvasRef.current;
-    const ctx = canvas?.getContext("2d");
-    if (!root || !canvas || !ctx) return;
-    const box = root.getBoundingClientRect();
-    const cols = Math.max(8, Math.round(box.width / CELL));
-    const rows = Math.max(8, Math.round(box.height / CELL));
-    canvas.width = cols;
-    canvas.height = rows;
-    const img = ctx.createImageData(cols, rows);
-    const data = img.data;
-    for (let y = 0; y < rows; y++) {
-      const v = 1 - (y + 0.5) / rows;
-      for (let x = 0; x < cols; x++) {
-        const s = (x + 0.5) / cols;
-        const [r, g, b] = hsvToRgb(fieldHue, s, v);
-        const tx = BAYER4[y & 3][x & 3];
-        const o = (y * cols + x) * 4;
-        data[o] = Math.round(ditherChannel(r / 255, tx) * 255);
-        data[o + 1] = Math.round(ditherChannel(g / 255, tx) * 255);
-        data[o + 2] = Math.round(ditherChannel(b / 255, tx) * 255);
-        data[o + 3] = 255;
-      }
-    }
-    ctx.putImageData(img, 0, 0);
+  function fromHue(e: Point): void {
+    const el = hueEl.current;
+    const { hsv: live, disabled: off, onChange: emit } = latest.current;
+    if (!el || off) return;
+    const rect = el.getBoundingClientRect();
+    const t = clamp01((e.clientX - rect.left) / Math.max(1, rect.width));
+    emit?.(hsvToHex(t * 360, live[1], live[2]));
   }
 
-  /** Paint the hue rail spectrum through the same dither. */
-  function paintHue(): void {
-    const root = hueRef.current;
-    const canvas = hueCanvasRef.current;
-    const ctx = canvas?.getContext("2d");
-    if (!root || !canvas || !ctx) return;
-    const box = root.getBoundingClientRect();
-    const cols = Math.max(8, Math.round(box.width / CELL));
-    const rows = Math.max(2, Math.round(box.height / CELL));
-    canvas.width = cols;
-    canvas.height = rows;
-    const img = ctx.createImageData(cols, rows);
-    const data = img.data;
-    for (let y = 0; y < rows; y++) {
-      for (let x = 0; x < cols; x++) {
-        const hue = (x / cols) * 360;
-        const [r, g, b] = hsvToRgb(hue, 1, 1);
-        const tx = BAYER4[y & 3][x & 3];
-        const o = (y * cols + x) * 4;
-        data[o] = Math.round(ditherChannel(r / 255, tx) * 255);
-        data[o + 1] = Math.round(ditherChannel(g / 255, tx) * 255);
-        data[o + 2] = Math.round(ditherChannel(b / 255, tx) * 255);
-        data[o + 3] = 255;
-      }
-    }
-    ctx.putImageData(img, 0, 0);
-  }
-
-  // Mount + resize + value/hue repaint. rAF defers so layout is settled; the
-  // ResizeObserver repaints on container resize. Cleanup cancels both.
-  useEffect(() => {
-    let ro: ResizeObserver | null = null;
-    const raf = requestAnimationFrame(() => {
-      paintField();
-      paintHue();
-      if (typeof ResizeObserver !== "undefined" && rootRef.current) {
-        ro = new ResizeObserver(() => {
-          paintField();
-          paintHue();
-        });
-        ro.observe(rootRef.current);
-      }
-    });
-    return () => {
-      cancelAnimationFrame(raf);
-      ro?.disconnect();
+  function track(onMove: (e: Point) => void): void {
+    stopTracking.current?.();
+    const stop = () => {
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", stop);
+      window.removeEventListener("pointercancel", stop);
+      stopTracking.current = null;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [value, fieldHue]);
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", stop);
+    window.addEventListener("pointercancel", stop);
+    stopTracking.current = stop;
+  }
 
-  // --- SV field pointer drag -------------------------------------------------
-  const fieldDrag = useRef(false);
-  function fieldPointToSV(clientX: number, clientY: number): { s: number; v: number } {
-    const rect = fieldRef.current!.getBoundingClientRect();
-    const s = clamp01((clientX - rect.left) / Math.max(1, rect.width));
-    const v = 1 - clamp01((clientY - rect.top) / Math.max(1, rect.height));
-    return { s, v };
+  function onPlaneDown(e: PointerEvent<HTMLDivElement>): void {
+    e.preventDefault();
+    if (disabled || e.button !== 0) return;
+    fromPlane(e);
+    track(fromPlane);
   }
-  function onFieldPointerDown(e: ReactPointerEvent<HTMLDivElement>): void {
-    fieldRef.current?.setPointerCapture(e.pointerId);
-    fieldDrag.current = true;
-    const { s, v } = fieldPointToSV(e.clientX, e.clientY);
-    commit(fieldHue, s, v);
+
+  function onHueDown(e: PointerEvent<HTMLDivElement>): void {
+    e.preventDefault();
+    if (disabled || e.button !== 0) return;
+    fromHue(e);
+    track(fromHue);
   }
-  function onFieldPointerMove(e: ReactPointerEvent<HTMLDivElement>): void {
-    if (!fieldDrag.current) return;
-    if (!fieldRef.current?.hasPointerCapture(e.pointerId)) return;
-    const { s, v } = fieldPointToSV(e.clientX, e.clientY);
-    commit(fieldHue, s, v);
-  }
-  function onFieldPointerUp(): void {
-    fieldDrag.current = false;
-  }
-  function onFieldKeydown(e: KeyboardEvent<HTMLDivElement>): void {
-    let { s, v } = hsv;
-    const coarse = e.shiftKey ? SV_STEP_COARSE : SV_STEP;
-    if (e.key === "ArrowRight") s = clamp01(s + coarse);
-    else if (e.key === "ArrowLeft") s = clamp01(s - coarse);
-    else if (e.key === "ArrowUp") v = clamp01(v + coarse);
-    else if (e.key === "ArrowDown") v = clamp01(v - coarse);
+
+  function onPlaneKeyDown(e: KeyboardEvent<HTMLDivElement>): void {
+    if (disabled) return;
+    const [, s, v] = hsv;
+    const d = e.shiftKey ? 0.1 : 0.01;
+    let ns = s;
+    let nv = v;
+    if (e.key === "ArrowLeft") ns = s - d;
+    else if (e.key === "ArrowRight") ns = s + d;
+    else if (e.key === "ArrowUp") nv = v + d;
+    else if (e.key === "ArrowDown") nv = v - d;
     else return;
     e.preventDefault();
-    commit(fieldHue, s, v);
+    onChange?.(hsvToHex(hsv[0], clamp01(ns), clamp01(nv)));
   }
 
-  // --- Hue rail pointer drag + slider keys ----------------------------------
-  const hueDrag = useRef(false);
-  function huePointToHue(clientX: number): number {
-    const rect = hueRef.current!.getBoundingClientRect();
-    return clamp01((clientX - rect.left) / Math.max(1, rect.width)) * 360;
-  }
-  function onHuePointerDown(e: ReactPointerEvent<HTMLDivElement>): void {
-    hueRef.current?.setPointerCapture(e.pointerId);
-    hueDrag.current = true;
-    const h = huePointToHue(e.clientX);
-    setFieldHue(h);
-    commit(h, hsv.s, hsv.v);
-  }
-  function onHuePointerMove(e: ReactPointerEvent<HTMLDivElement>): void {
-    if (!hueDrag.current) return;
-    if (!hueRef.current?.hasPointerCapture(e.pointerId)) return;
-    const h = huePointToHue(e.clientX);
-    setFieldHue(h);
-    commit(h, hsv.s, hsv.v);
-  }
-  function onHuePointerUp(): void {
-    hueDrag.current = false;
-  }
-  function onHueKeydown(e: KeyboardEvent<HTMLDivElement>): void {
-    const coarse = e.shiftKey ? HUE_STEP_COARSE : HUE_STEP;
-    let h = fieldHue;
-    if (e.key === "ArrowRight" || e.key === "ArrowUp") h = (fieldHue + coarse) % 360;
-    else if (e.key === "ArrowLeft" || e.key === "ArrowDown") h = (fieldHue - coarse + 360) % 360;
-    else if (e.key === "Home") h = 0;
-    else if (e.key === "End") h = 359;
-    else return;
-    e.preventDefault();
-    setFieldHue(h);
-    commit(h, hsv.s, hsv.v);
-  }
-
-  // --- Hex input round-trip -------------------------------------------------
-  function onHexChange(raw: string): void {
-    setHexDraft(raw);
-    let h = raw.trim();
-    if (!h.startsWith("#")) h = `#${h}`;
-    if (/^#[0-9a-fA-F]{6}$/.test(h) || /^#[0-9a-fA-F]{3}$/.test(h)) {
-      onChange?.(rgbToHex(hexToRgb(h)));
+  function onHueKeyDown(e: KeyboardEvent<HTMLDivElement>): void {
+    const step = 1 + (e.shiftKey ? 15 : 0);
+    if (e.key === "ArrowLeft") {
+      e.preventDefault();
+      onChange?.(hsvToHex(Math.max(0, hsv[0] - step), hsv[1], hsv[2]));
+    } else if (e.key === "ArrowRight") {
+      e.preventDefault();
+      onChange?.(hsvToHex(Math.min(360, hsv[0] + step), hsv[1], hsv[2]));
     }
   }
 
-  const crossLeft = `${hsv.s * 100}%`;
-  const crossTop = `${(1 - hsv.v) * 100}%`;
-  const hueLeft = `${(fieldHue / 360) * 100}%`;
-  const readout = `Hue ${Math.round(fieldHue)}°, saturation ${Math.round(hsv.s * 100)} percent, value ${Math.round(hsv.v * 100)} percent, ${value}`;
+  function onHexInput(raw: string): void {
+    const cleaned = raw.startsWith("#") ? raw : `#${raw}`;
+    if (/^#[0-9a-f]{0,6}$/i.test(cleaned)) {
+      onChange?.(cleaned);
+    }
+  }
 
   return (
-    <div ref={rootRef} className={cn("w-full select-none text-foreground", className)}>
-      <div className="flex gap-2">
-        <div
-          ref={fieldRef}
-          role="group"
-          aria-label={`${label}, saturation and value field`}
-          aria-describedby={readoutId}
-          tabIndex={0}
-          className="relative h-40 flex-1 cursor-crosshair overflow-hidden rounded-[2px] outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
-          onPointerDown={onFieldPointerDown}
-          onPointerMove={onFieldPointerMove}
-          onPointerUp={onFieldPointerUp}
-          onPointerCancel={onFieldPointerUp}
-          onKeyDown={onFieldKeydown}
-        >
-          <canvas
-            ref={fieldCanvasRef}
-            aria-hidden="true"
-            className="absolute inset-0 h-full w-full"
-            style={{ imageRendering: "pixelated" }}
-          />
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute size-3 -translate-x-1/2 -translate-y-1/2 rounded-[1px] border-2 border-white shadow-[0_0_0_1px_rgba(0,0,0,0.7)]"
-            style={{ left: crossLeft, top: crossTop }}
-          />
-        </div>
-        <div
-          ref={hueRef}
-          role="slider"
-          aria-label={`${label}, hue`}
-          aria-describedby={readoutId}
-          aria-valuemin={0}
-          aria-valuemax={360}
-          aria-valuenow={Math.round(fieldHue)}
-          aria-valuetext={`${Math.round(fieldHue)} degrees`}
-          tabIndex={0}
-          className="relative h-40 w-5 cursor-pointer overflow-hidden rounded-[2px] outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
-          onPointerDown={onHuePointerDown}
-          onPointerMove={onHuePointerMove}
-          onPointerUp={onHuePointerUp}
-          onPointerCancel={onHuePointerUp}
-          onKeyDown={onHueKeydown}
-        >
-          <canvas
-            ref={hueCanvasRef}
-            aria-hidden="true"
-            className="absolute inset-0 h-full w-full"
-            style={{ imageRendering: "pixelated" }}
-          />
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-y-0 w-1 -translate-x-1/2 border-x border-white bg-foreground/10"
-            style={{ left: hueLeft }}
-          />
-        </div>
-      </div>
-
-      <div className="mt-2 flex items-center gap-2">
+    <div {...rest} className={cn("grid w-60 gap-2", disabled && "opacity-40", className)}>
+      <div
+        ref={planeEl}
+        role="slider"
+        tabIndex={0}
+        aria-label="Saturation and brightness"
+        aria-valuetext={value}
+        aria-disabled={disabled || undefined}
+        className="relative h-36 w-full cursor-crosshair rounded-md border border-border outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
+        style={{
+          background: `linear-gradient(to top, #000, transparent), linear-gradient(to right, #fff, transparent), ${hueColor}`,
+        }}
+        onPointerDown={onPlaneDown}
+        onKeyDown={onPlaneKeyDown}
+      >
         <span
-          aria-hidden="true"
-          className="size-7 shrink-0 rounded-[2px] border border-border"
-          style={{ backgroundColor: value }}
+          className="pointer-events-none absolute size-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white shadow"
+          style={{ left: `${round(hsv[1] * 100)}%`, top: `${round(100 - hsv[2] * 100)}%`, background: value }}
         />
-        <input
-          id={hexInputId}
-          type="text"
-          value={hexDraft}
-          spellCheck={false}
-          autoComplete="off"
-          aria-label={`${label}, hex value`}
-          className={cn(CONTROL, "h-9 w-28 font-mono text-[12px] uppercase")}
-          onFocus={() => setHexFocused(true)}
-          onBlur={() => {
-            setHexFocused(false);
-            setHexDraft(value);
-          }}
-          onChange={(e) => onHexChange(e.currentTarget.value)}
-        />
-        <span id={readoutId} className="sr-only" role="status" aria-live="polite">
-          {readout}
-        </span>
       </div>
 
-      <div className="mt-2 flex flex-wrap gap-1.5" role="group" aria-label={`${label}, preset swatches`}>
-        {SWATCHES.map((sw) => {
-          const hex = colorToHex(sw);
-          const selected = value.toLowerCase() === hex.toLowerCase();
-          return (
-            <button
-              key={sw}
-              type="button"
-              aria-label={`${typeof sw === "string" ? sw : "swatch"} ${hex}`}
-              aria-pressed={selected}
-              className={cn(
-                "size-5 rounded-[2px] border transition-transform motion-reduce:transition-none hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-                selected ? "border-foreground" : "border-border",
-              )}
-              style={{ backgroundColor: cssColor(sw), imageRendering: "pixelated" }}
-              onClick={() => {
-                const next = hexToHsv(hex);
-                if (next.s > 0.001 && next.v > 0.001) setFieldHue(next.h);
-                onChange?.(hex);
-              }}
-            />
-          );
-        })}
+      <div
+        ref={hueEl}
+        role="slider"
+        tabIndex={0}
+        aria-label="Hue"
+        aria-valuemin={0}
+        aria-valuemax={360}
+        aria-valuenow={Math.round(hsv[0])}
+        aria-disabled={disabled || undefined}
+        className="relative h-4 w-full cursor-ew-resize rounded-full border border-border outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
+        style={HUE_STRIP}
+        onPointerDown={onHueDown}
+        onKeyDown={onHueKeyDown}
+      >
+        <span
+          className="pointer-events-none absolute left-0 top-1/2 size-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white shadow"
+          style={{ marginLeft: `${round((hsv[0] / 360) * 100)}%`, background: hueColor }}
+        />
       </div>
+
+      <label className="flex items-center gap-2 text-[12px] text-muted-foreground">
+        Hex
+        <input
+          value={value}
+          disabled={disabled}
+          spellCheck={false}
+          className="min-h-8 flex-1 rounded border border-border/70 bg-transparent px-2 font-mono text-[12.5px] uppercase text-foreground outline-none focus-visible:border-accent/70 motion-reduce:transition-none"
+          onChange={(e) => onHexInput(e.currentTarget.value)}
+        />
+      </label>
     </div>
   );
 }
+
+export default DitherColorPicker;

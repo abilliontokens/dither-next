@@ -18,6 +18,7 @@ export interface DitherDitherProps {
   speed?: number;
   opacity?: number;
   paused?: boolean;
+  frameRate?: number;
   dpr?: number;
   mixBlendMode?: string;
   seed?: number;
@@ -36,6 +37,7 @@ export function DitherDither({
   speed = 0.5,
   opacity = 1,
   paused = false,
+  frameRate = 0,
   dpr,
   mixBlendMode,
   seed,
@@ -69,6 +71,7 @@ export function DitherDither({
     maxRows: MAX_ROWS,
     dpr: () => dpr,
     paused: () => paused,
+    frameRate: () => frameRate,
     renderMode: () => renderMode,
     precompiled: () => precompiled,
     restart: () => [seed, renderMode, precompiled, dpr],

@@ -20,6 +20,7 @@ export interface DitherShapeGridProps {
   opacity?: number;
   dither?: number | boolean;
   paused?: boolean;
+  frameRate?: number;
   dpr?: number;
   mixBlendMode?: string;
   seed?: number;
@@ -40,6 +41,7 @@ export function DitherShapeGrid({
   opacity = 1,
   dither = 1,
   paused = false,
+  frameRate = 0,
   dpr,
   mixBlendMode,
   seed,
@@ -64,7 +66,7 @@ export function DitherShapeGrid({
   useDitherBackground({
     wrapRef, canvasRef,
     cell: CELL, maxCols: MAX_COLS, maxRows: MAX_ROWS,
-    dpr: () => dpr, paused: () => paused,
+    dpr: () => dpr, paused: () => paused, frameRate: () => frameRate,
     renderMode: () => renderMode, precompiled: () => precompiled,
     restart: () => [seed, renderMode, precompiled, dpr],
     render: (buffer: RasterBuffer, clock: number) => paintShapeGrid(buffer, params, clock, matrix),

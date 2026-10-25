@@ -96,31 +96,16 @@ const [level, setLevel] = useState(40)
   <DitherProgress indeterminate color="purple" />
 </div>`;
 
-const SNIPPET_COLOR = `<DitherColorPicker value={accent} onChange={setAccent} label="Accent" />
-{/* HSV field + hue rail painted through the ordered-dither engine; value is a
-    normalised #rrggbb hex string */}`;
+const SNIPPET_COLOR = `<DitherColorPicker value={tint} onChange={setTint} />`;
 
-const SNIPPET_TAG = `<DitherTagInput
-  value={tags}
-  onChange={setTags}
-  suggestions={['vue', 'canvas', 'react', 'svelte']}
-  placeholder="Add tag…"
-  label="Tags"
-/>
-{/* Enter or comma commits · Backspace on empty removes the last chip ·
-    paste splits on delimiters · chips carry a seeded pixel-square accent */}`;
+const SNIPPET_TAG = `<DitherTagInput value={tags} onChange={setTags} max={8} placeholder="Add tag…" />`;
 
-const SNIPPET_DATEPICKER = `<DitherDatePicker mode="single" value={date} onChange={setDate} color="blue" />
-{/* ordered-dither calendar · single or range mode · keyboard grid (arrows +
-    Home/End) · min/max disable cells · value is "yyyy-mm-dd" or a range pair */}`;
+const SNIPPET_DATEPICKER = `<DitherDatePicker value={due} onChange={setDue} min="2026-01-01" />`;
 
 const DATEPICKER_PROPS: PropRow[] = [
-  { prop: "mode", type: '"single" | "range"', default: '"single"' },
-  { prop: "value", type: "DateISO | { start, end }", default: "—" },
-  { prop: "onChange", type: "(value: DateValue)", default: "—" },
-  { prop: "min / max", type: "DateISO — inclusive bounds", default: "—" },
-  { prop: "weekStartsOn", type: "0 | 1", default: "0" },
-  { prop: "color", type: "PixelColor", default: '"blue"' },
+  { prop: "value / onChange", type: "string (ISO YYYY-MM-DD)", default: '""' },
+  { prop: "min / max", type: "string (ISO)", default: "" },
+  { prop: "onSelect", type: "(iso) when picked", default: "" },
 ];
 
 const SNIPPET_RANGESLIDER = `<DitherRangeSlider value={range} onChange={setRange} min={0} max={100} showValues color="blue" />
@@ -161,16 +146,11 @@ const TIMEPICKER_PROPS: PropRow[] = [
   { prop: "color", type: "PixelColor", default: '"blue"' },
 ];
 
-const SNIPPET_SIGNATUREPAD = `<DitherSignaturePad color="green" label="Sign here" onChange={setSig} />
-{/* dithered brush canvas · pointer + pen strokes quantised to Bayer cells ·
-    onChange fires a PNG data URL on stroke end, null on clear */}`;
+const SNIPPET_SIGNATUREPAD = `<DitherSignaturePad onChange={save} height={180} />`;
 
 const SIGNATUREPAD_PROPS: PropRow[] = [
-  { prop: "color", type: "PixelColor — stroke", default: '"green"' },
-  { prop: "size", type: "number — brush radius in cells", default: "2" },
-  { prop: "height", type: "number (px)", default: "180" },
-  { prop: "label", type: "string", default: "—" },
-  { prop: "onChange", type: "(dataUrl: string | null)", default: "—" },
+  { prop: "width / height", type: "number (canvas)", default: "420 / 160" },
+  { prop: "onChange", type: '(dataURL) per stroke, "" on clear', default: "" },
 ];
 
 const SNIPPET_DROPZONE = `<DitherDropzone accept="image/*" label="Drop files here" hint="or click to browse" color="blue" />
@@ -216,17 +196,12 @@ const API: Record<string, PropRow[]> = {
     { prop: "className", type: "string", default: "—" },
   ],
   colorPicker: [
-    { prop: "value", type: "string — #rrggbb hex (controlled)", default: "required" },
-    { prop: "label", type: "string — accessible name", default: '"Colour picker"' },
-    { prop: "onChange", type: "(hex: string) — normalised #rrggbb", default: "—" },
+    { prop: "value / onChange", type: "string (hex)", default: '"#5227FF"' },
+    { prop: "disabled", type: "boolean", default: "false" },
   ],
   tagInput: [
-    { prop: "value", type: "string[] (controlled)", default: "required" },
-    { prop: "suggestions", type: "string[] — autocomplete", default: "undefined" },
-    { prop: "duplicates", type: "boolean — allow duplicate tags", default: "false" },
-    { prop: "max", type: "number — hard cap", default: "undefined" },
-    { prop: "placeholder", type: "string", default: '"Add tag…"' },
-    { prop: "label", type: "string", default: '"Tags"' },
+    { prop: "value / onChange", type: "string[]", default: "[]" },
+    { prop: "max", type: "number", default: "Infinity" },
   ],
 };
 
@@ -246,25 +221,15 @@ const IMAGECROPPER_PROPS: PropRow[] = [
 const CROPPER_SRC =
   "data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22320%22%20height%3D%22240%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22g%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23358ff3%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23f05abe%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Crect%20width%3D%22320%22%20height%3D%22240%22%20fill%3D%22url(%23g)%22%2F%3E%3C%2Fsvg%3E";
 
-const SNIPPET_MENTION = `<DitherMentionInput options={people} trigger="@" onChange={setText} />
-{/* textarea with @-mention autocomplete · popup filters as you type · Backspace
-    removes a whole mention in one stroke · keyboard-navigable list */}`;
+const SNIPPET_MENTION = `<DitherMentionInput value={body} onChange={setBody} options={handles} onMention={notify} />`;
 
 const MENTION_PROPS: PropRow[] = [
-  { prop: "options", type: "DitherMentionOption[] — { value, label, color? }", default: "required" },
-  { prop: "value / defaultValue", type: "string", default: '""' },
-  { prop: "onChange", type: "(value: string) => void", default: "—" },
-  { prop: "trigger", type: "string — opens the popup", default: '"@"' },
-  { prop: "mentionSuffix", type: "string — appended after a mention", default: '" "' },
-  { prop: "rows", type: "number", default: "4" },
+  { prop: "value / onChange", type: "string", default: '""' },
+  { prop: "options", type: "string[]", default: "[]" },
+  { prop: "onMention", type: "(handle) on insert", default: "" },
 ];
 
-const MENTION_OPTIONS = [
-  { value: "team", label: "team" },
-  { value: "design", label: "design" },
-  { value: "engineering", label: "engineering" },
-  { value: "product", label: "product" },
-];
+const MENTION_HANDLES = ["dana", "darius", "daniela", "sam"];
 
 const SNIPPET_SHORTCUT = `<DitherShortcutRecorder value={chord} onChange={setChord} conflicts={taken} />
 {/* click to arm, press a real key to capture · canonical chord like Mod+Shift+K
@@ -351,12 +316,13 @@ const SLIDER2D_PROPS: PropRow[] = [
 ];
 
 export function FormDocs() {
-  const [date, setDate] = useState<string | null>("2024-06-15");
+  const [date, setDate] = useState("2026-10-07");
   const [range, setRange] = useState<[number, number]>([20, 80]);
   const [view, setView] = useState("Day");
   const [time, setTime] = useState("09:30");
   const [accent, setAccent] = useState("#5227FF");
-  const [tags, setTags] = useState(["vue", "canvas", "dither"]);
+  const [tags, setTags] = useState(["vue", "dither"]);
+  const [mention, setMention] = useState("cc @da");
   const [bloom, setBloom] = useState(true);
 
   const [opts, setOpts] = useState({ grid: true, snap: false, rulers: true });
@@ -490,14 +456,12 @@ export function FormDocs() {
       <section id="color-picker" className="mt-16 scroll-mt-24">
         <h2 className="text-lg tracking-tight">Color picker</h2>
         <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-          An HSV colour picker whose saturation/value field and hue rail are painted
-          through the ordered-dither engine, so the surface reads as Bayer pixels
-          rather than a smooth gradient. Value is a normalised #rrggbb hex string; a
-          held hue survives picking an achromatic swatch.
+          HSV field + hue strip + hex readout: the plane is pointer-driven (arrows nudge S/V, Shift for coarse), the hue
+          strip is a slider of its own, and the hex input accepts what you type. Model = hex string.
         </p>
         <DemoCard code={SNIPPET_COLOR}>
-          <div className="mx-auto grid max-w-sm place-items-center">
-            <DitherColorPicker value={accent} onChange={setAccent} label="Accent" />
+          <div className="flex justify-center">
+            <DitherColorPicker value={accent} onChange={setAccent} />
           </div>
         </DemoCard>
         <PropsTable rows={API.colorPicker} />
@@ -506,20 +470,12 @@ export function FormDocs() {
       <section id="tag-input" className="mt-16 scroll-mt-24">
         <h2 className="text-lg tracking-tight">Tag input</h2>
         <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-          A token/chip input — type and Enter (or comma) commits a tag, Backspace on an
-          empty field removes the last chip, and a delimited paste splits into many.
-          Each chip carries a seeded pixel-square accent so the set reads in the kit{"'"}s
-          colour family; the autocomplete mirrors the combobox{"'"}s ARIA.
+          Tags as chips in one field: Enter or comma commits, Backspace on an empty input pulls the last chip back in,
+          per-chip × removes. Trimmed, case-deduped, <code className="text-foreground/80">max</code>-capped.
         </p>
         <DemoCard code={SNIPPET_TAG}>
-          <div className="mx-auto max-w-sm">
-            <DitherTagInput
-              value={tags}
-              onChange={setTags}
-              suggestions={["vue", "canvas", "react", "svelte", "solid"]}
-              placeholder="Add tag…"
-              label="Tags"
-            />
+          <div className="mx-auto w-full max-w-sm">
+            <DitherTagInput value={tags} onChange={setTags} placeholder="Add tag…" />
           </div>
         </DemoCard>
         <PropsTable rows={API.tagInput} />
@@ -529,15 +485,12 @@ export function FormDocs() {
       <section id="date-picker" className="mt-16 scroll-mt-24">
         <h2 className="text-lg tracking-tight">Date picker</h2>
         <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-          A full calendar grid where every day cell is an ordered-dither tile and
-          the selected day reads as a dense Bayer fill. Single or range mode,
-          min/max bounds disable cells, and the grid is fully keyboard-operable
-          (arrows to move, Home/End to jump). Controlled via value/onChange as an
-          ISO date or a start/end pair.
+          Date field + calendar popover: the input shows a human format, the calendar opens on click/focus, select closes,
+          Escape and outside-click dismiss. The model stays ISO.
         </p>
         <DemoCard code={SNIPPET_DATEPICKER}>
-          <div className="mx-auto max-w-sm">
-            <DitherDatePicker mode="single" value={date} onChange={(v) => setDate(typeof v === "string" ? v : null)} color="blue" />
+          <div className="mx-auto w-full max-w-xs">
+            <DitherDatePicker value={date} onChange={setDate} />
           </div>
         </DemoCard>
         <PropsTable rows={DATEPICKER_PROPS} />
@@ -598,13 +551,13 @@ export function FormDocs() {
       <section id="signature-pad" className="mt-16 scroll-mt-24">
         <h2 className="text-lg tracking-tight">Signature pad</h2>
         <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-          A dithered brush canvas — pointer and pen strokes are quantised to Bayer
-          cells so every line reads as part of the kit&apos;s texture. onChange fires a
-          PNG data URL on stroke end (and null on clear); no upload happens here.
+          Pointer drawing on a canvas. The <code className="text-foreground/80">onChange</code> callback fires the dataURL
+          after every stroke and on clear. A context-less environment refuses strokes instead of throwing, so degraded
+          engines degrade visibly.
         </p>
         <DemoCard code={SNIPPET_SIGNATUREPAD}>
-          <div className="mx-auto max-w-md">
-            <DitherSignaturePad color="green" label="Sign here" />
+          <div className="mx-auto w-full max-w-md">
+            <DitherSignaturePad height={140} />
           </div>
         </DemoCard>
         <PropsTable rows={SIGNATUREPAD_PROPS} />
@@ -650,14 +603,13 @@ export function FormDocs() {
       <section id="mention-input" className="mt-16 scroll-mt-24">
         <h2 className="text-lg tracking-tight">Mention input</h2>
         <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-          A textarea with <code className="text-foreground/80">@</code>-mention autocomplete. Type
-          the trigger and the popup filters as you type; arrow keys move the
-          selection and Enter inserts the mention. Each completed mention is a
-          single token &mdash; Backspace removes the whole mention in one stroke.
+          Textarea with <code className="text-foreground/80">@</code>-mention autocomplete: detection is a regex on the
+          text before the caret, the list anchors to the field, Arrow keys pick, Enter/Tab inserts, Escape closes. The
+          caret lands after the inserted handle.
         </p>
         <DemoCard code={SNIPPET_MENTION}>
-          <div className="mx-auto max-w-md">
-            <DitherMentionInput options={MENTION_OPTIONS} trigger="@" placeholder="Type @ to mention…" />
+          <div className="mx-auto w-full max-w-md">
+            <DitherMentionInput value={mention} onChange={setMention} options={MENTION_HANDLES} rows={3} />
           </div>
         </DemoCard>
         <PropsTable rows={MENTION_PROPS} />
