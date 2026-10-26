@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit",
     "build:css": "node scripts/kit-css.mjs",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "build:kit": "node scripts/build-kit-package.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",

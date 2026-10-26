@@ -1,0 +1,37 @@
+# Publish dither-kit to npm when a `kit-v*` tag is pushed (e.g. kit-v0.1.1).
+# The tag must match dither-kit/package.json's version. Uses npm provenance;
+# requires the NPM_TOKEN repository secret (an npm automation token, or set up
+# npm trusted publishing for this workflow and drop the token).
+name: Publish dither-kit to npm
+
+on:
+  push:
+    tags: ["kit-v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+          cache: npm
+      - run: npm ci
+      - run: npx tsc --noEmit
+      - run: npx vitest run
+      - name: Check tag matches package version
+        if: startsWith(github.ref, 'refs/tags/kit-v')
+        run: |
+          v=$(node -p "require('./dither-kit/package.json').version")
+          test "kit-v$v" = "${GITHUB_REF_NAME}" || { echo "tag ${GITHUB_REF_NAME} != kit-v$v"; exit 1; }
+      - run: npm run build:kit
+      - run: npm publish ./dither-kit/dist --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

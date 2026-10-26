@@ -25,3 +25,6 @@ yarn-error.log*
 
 # standalone kit stylesheet — compiled by `npm run build:css` (scripts/kit-css.mjs)
 /public/kit/
+
+# npm package build output - scripts/build-kit-package.mjs
+/dither-kit/dist/

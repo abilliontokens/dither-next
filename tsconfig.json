@@ -1,7 +1,11 @@
 {
   "compilerOptions": {
     "target": "ES2021",
-    "lib": ["ES2021", "DOM", "DOM.Iterable"],
+    "lib": [
+      "ES2021",
+      "DOM",
+      "DOM.Iterable"
+    ],
     "allowJs": false,
     "skipLibCheck": true,
     "strict": true,
@@ -18,12 +22,22 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedIndexedAccess": false,
     "forceConsistentCasingInFileNames": true,
-    "plugins": [{ "name": "next" }],
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"],
-      "@dither-kit": ["./dither-kit/index.ts"],
-      "@dither-kit/*": ["./dither-kit/*"]
+      "@/*": [
+        "./src/*"
+      ],
+      "@dither-kit": [
+        "./dither-kit/index.ts"
+      ],
+      "@dither-kit/*": [
+        "./dither-kit/*"
+      ]
     }
   },
   "include": [
@@ -32,5 +46,9 @@
     "**/*.tsx",
     ".next/types/**/*.ts"
   ],
-  "exclude": ["node_modules"]
+  "exclude": [
+    "node_modules",
+    "dither-kit/dist",
+    "scripts/kit-env.d.ts"
+  ]
 }
