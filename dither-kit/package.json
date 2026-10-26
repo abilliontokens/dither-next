@@ -1,7 +1,7 @@
 {
   "name": "dither-kit",
   "version": "0.1.0",
-  "description": "Dithered UI toolkit \u00e2\u20ac\u201d composable ordered-dither charts (area, line, bar, pie, radar) on one tiny canvas engine, plus generative avatars, buttons, gradient washes and more. React port.",
+  "description": "Dithered UI toolkit — composable ordered-dither charts (area, line, bar, pie, radar) on one tiny canvas engine, plus generative avatars, buttons, gradient washes and more. React port.",
   "private": true,
   "type": "module",
   "main": "./index.ts",
