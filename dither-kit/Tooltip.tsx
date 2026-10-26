@@ -94,7 +94,7 @@ export function Tooltip({
             <span className="ml-auto pl-2 text-foreground">
               {valueFormatter
                 ? valueFormatter(item.value, item.name)
-                : item.value.toLocaleString()}
+                : Number.isFinite(item.value) ? item.value.toLocaleString() : "Not measured"}
             </span>
           </div>
         ))}

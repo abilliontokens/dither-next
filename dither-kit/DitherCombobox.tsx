@@ -1,3 +1,5 @@
+"use client"
+
 import { useEffect, useMemo, useState, type KeyboardEvent } from "react"
 import { cn } from "./lib"
 import { cssColor } from "./palette"

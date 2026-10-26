@@ -146,7 +146,7 @@ export function DitherSelect({
         onKeyDown={onKeydown}
         {...rest}
       >
-        <span className={cn("truncate", selected ? "text-foreground" : "text-muted-foreground/70")}>
+        <span className={cn("truncate", selected ? "text-foreground" : "text-muted-foreground")}>
           {selected?.label ?? placeholder}
         </span>
         <span

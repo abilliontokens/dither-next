@@ -437,7 +437,7 @@ export function useChartController(input: ControllerInput): ChartContextValue {
           return {
             name,
             label: input.config()[name]?.label ?? name,
-            value: typeof raw === "number" ? raw : 0,
+            value: typeof raw === "number" ? raw : Number.NaN,
             seed: seedOf(name),
             dimmed: emphasis !== null && emphasis !== name,
           }

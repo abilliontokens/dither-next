@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { cloneElement, useEffect, useRef, type ReactElement } from "react";
 
 import { BAYER4, fillOf, type PixelColor } from "./pixel";
 import { cssColor, rgb } from "./palette";
@@ -39,6 +39,12 @@ export interface DitherSidebarItemProps {
   onSelect?: () => void;
   /** Icon slot (left of the label). */
   icon?: React.ReactNode;
+  /**
+   * Optional root element to render instead of the default `<button>`, e.g.
+   * `render={<Link href="…" />}` for a real anchor (SEO, prefetch,
+   * cmd/middle-click). The dither rail, label, and badge are preserved.
+   */
+  render?: ReactElement<Record<string, unknown>>;
 }
 
 /**
@@ -57,6 +63,7 @@ export function DitherSidebarItem({
   badge,
   onSelect,
   icon,
+  render,
 }: DitherSidebarItemProps) {
   const { collapsed, compact } = useSidebar();
   const railRef = useRef<HTMLCanvasElement | null>(null);
@@ -79,20 +86,16 @@ export function DitherSidebarItem({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [active, color]);
 
-  return (
-    <button
-      type="button"
-      aria-current={active ? "true" : undefined}
-      title={collapsed ? label : undefined}
-      className={[
-        "relative flex items-center rounded-md text-left font-mono transition-colors",
-        compact ? "h-7 gap-2 px-2 text-[11px]" : "h-8 gap-2.5 px-2.5 text-[12px]",
-        active
-          ? "bg-card text-foreground"
-          : "text-muted-foreground hover:bg-card/60 hover:text-foreground",
-      ].join(" ")}
-      onClick={() => onSelect?.()}
-    >
+  const className = [
+    "relative flex items-center rounded-md text-left font-mono transition-colors",
+    compact ? "h-7 gap-2 px-2 text-[11px]" : "h-8 gap-2.5 px-2.5 text-[12px]",
+    active
+      ? "bg-card text-foreground"
+      : "text-muted-foreground hover:bg-card/60 hover:text-foreground",
+  ].join(" ");
+
+  const inner = (
+    <>
       {active ? (
         <canvas
           ref={railRef}
@@ -119,6 +122,27 @@ export function DitherSidebarItem({
           style={{ backgroundColor: cssColor(color) }}
         />
       ) : null}
+    </>
+  );
+
+  if (render) {
+    return cloneElement(render, {
+      className,
+      "aria-current": active ? "true" : undefined,
+      title: collapsed ? label : undefined,
+      children: inner,
+    });
+  }
+
+  return (
+    <button
+      type="button"
+      aria-current={active ? "true" : undefined}
+      title={collapsed ? label : undefined}
+      className={className}
+      onClick={() => onSelect?.()}
+    >
+      {inner}
     </button>
   );
 }

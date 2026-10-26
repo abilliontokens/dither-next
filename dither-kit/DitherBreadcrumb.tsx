@@ -47,7 +47,7 @@ export function DitherBreadcrumb({
               {!last ? (
                 <span
                   aria-hidden="true"
-                  className="select-none text-muted-foreground/40"
+                  className="select-none text-muted-foreground/70"
                 >
                   {separator}
                 </span>

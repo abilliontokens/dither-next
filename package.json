@@ -13,6 +13,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@base-ui/react": "^1.9.0",
     "clsx": "^2.1.1",
     "d3-scale": "^4.0.2",
     "d3-shape": "^3.2.0",
@@ -34,8 +35,8 @@
     "@types/node": "^22.10.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
-    "eslint": "^8.57.0 || ^9.0.0",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
+    "eslint": "^8.57.0 || ^9.0.0",
     "eslint-config-next": "15.1.8",
     "jsdom": "^25.0.1",
     "tailwindcss": "^4.0.0",

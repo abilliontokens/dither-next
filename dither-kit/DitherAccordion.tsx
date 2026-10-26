@@ -45,6 +45,10 @@ export interface DitherAccordionProps {
   /** Named-slot content per item: `slots[item.value]` renders in that panel. */
   slots?: Record<string, React.ReactNode>;
   onChange?: (value: string | string[]) => void;
+  /** Extra classes merged onto each item's trigger button. */
+  triggerClassName?: string;
+  /** Extra classes merged onto each item's content body. */
+  contentClassName?: string;
 }
 
 /**
@@ -67,6 +71,8 @@ export function DitherAccordion({
   color = "blue",
   slots,
   onChange,
+  triggerClassName,
+  contentClassName,
 }: DitherAccordionProps) {
   const railsRef = useRef<(HTMLCanvasElement | null)[]>([]);
   // Track latest color in a ref so the ResizeObserver callback (set up once)
@@ -130,7 +136,10 @@ export function DitherAccordion({
               type="button"
               aria-expanded={open}
               aria-controls={`${reactId}-${i}`}
-              className="flex w-full items-center justify-between gap-2 py-2 text-left text-[13px] text-foreground transition-colors focus-visible:ring-1 focus-visible:ring-foreground/40 focus-visible:outline-none"
+              className={cn(
+                "flex w-full items-center justify-between gap-2 py-2 text-left text-[13px] text-foreground transition-colors focus-visible:ring-1 focus-visible:ring-foreground/40 focus-visible:outline-none",
+                triggerClassName,
+              )}
               onClick={() => toggle(item.value)}
             >
               <span>{item.title}</span>
@@ -162,7 +171,7 @@ export function DitherAccordion({
                       style={{ imageRendering: "pixelated" }}
                     />
                   </div>
-                  <div className="min-w-0 flex-1 text-[13px] leading-relaxed text-muted-foreground">
+                  <div className={cn("min-w-0 flex-1 text-[13px] leading-relaxed text-muted-foreground", contentClassName)}>
                     {slots?.[item.value]}
                   </div>
                 </div>

@@ -85,7 +85,7 @@ export function DitherStepper({ steps, current, className }: DitherStepperProps)
               {s.label}
             </span>
             {s.hint ? (
-              <span className="text-center text-[11px] text-muted-foreground/60">
+              <span className="text-center text-[11px] text-muted-foreground">
                 {s.hint}
               </span>
             ) : null}

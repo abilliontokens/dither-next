@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useRef, type CSSProperties } from "react"
+import { Button as ButtonPrimitive } from "@base-ui/react/button"
 import { CONTROL_BUTTON } from "./control"
 import { kitFromSeed } from "./dither-paint"
 import { cn } from "./lib"
@@ -25,14 +26,15 @@ import { putRasterBuffer, type RasterBuffer } from "./raster"
 export type ButtonVariant = "gradient" | "dotted" | "hatched" | "solid"
 export type { DitherRenderMode, PrecompiledDither }
 
-/** Props for {@link DitherButton}. Extends the native `<button>` attributes so
- *  any DOM-level prop (`onClick`, `aria-*`, `data-*`, `form`, …) falls through
- *  to the underlying button — the Vue kit's `$attrs` fallthrough (guide §5).
+/** Props for {@link DitherButton}. Built on Base UI's Button, so DOM props
+ *  (`onClick`, `aria-*`, `data-*`, `form`, …) fall through to the rendered
+ *  element — the Vue kit's `$attrs` fallthrough (guide §5). To render a link,
+ *  pass `nativeButton={false}`, `role="link"`, and `render={<a href="…" />}`.
  *  `color`/`type`/`disabled` are omitted from the base because the kit
- *  redefines them. `class` className prop (React idiom, guide §1). */
+ *  redefines them. */
 export interface DitherButtonProps
   extends Omit<
-    React.ButtonHTMLAttributes<HTMLButtonElement>,
+    ButtonPrimitive.Props,
     "color" | "type" | "disabled" | "className"
   > {
   color?: PixelColor
@@ -85,6 +87,7 @@ export function DitherButton({
   type = "button",
   loading = false,
   disabled = false,
+  nativeButton = true,
   className,
   renderMode = "live",
   precompiled: precompiledProp,
@@ -122,7 +125,7 @@ export function DitherButton({
   )
   const bloomStyle = useMemo(() => pixelBloomStyle(bloom), [bloom])
 
-  const buttonRef = useRef<HTMLButtonElement | null>(null)
+  const buttonRef = useRef<HTMLElement | null>(null)
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const bloomRef = useRef<HTMLCanvasElement | null>(null)
   // restartToken guards against stale RAF closures firing after a prop change
@@ -217,7 +220,7 @@ export function DitherButton({
       setTarget(0)
     }
     const down = () => {
-      if (!button.disabled) setTarget(1.5)
+      if (!loading && !disabled) setTarget(1.5)
     }
     const up = () => setTarget(hovered ? 1 : 0)
 
@@ -281,9 +284,10 @@ export function DitherButton({
   )
 
   return (
-    <button
+    <ButtonPrimitive
       ref={buttonRef}
-      type={type}
+      nativeButton={nativeButton}
+      type={nativeButton ? type : undefined}
       disabled={loading || disabled}
       aria-busy={loading || undefined}
       className={cn(
@@ -334,6 +338,6 @@ export function DitherButton({
         </span>
       ) : null}
       <span className="relative">{children}</span>
-    </button>
+    </ButtonPrimitive>
   )
 }

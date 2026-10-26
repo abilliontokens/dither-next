@@ -1,3 +1,5 @@
+"use client";
+
 import { useMemo } from "react";
 
 import { cn } from "./lib";
@@ -80,7 +82,7 @@ export function DitherPagination({
           <span
             key={i}
             aria-hidden="true"
-            className="inline-flex h-8 min-w-8 items-center justify-center text-[12px] text-muted-foreground/50"
+            className="inline-flex h-8 min-w-8 items-center justify-center text-[12px] text-muted-foreground/70"
           >
             …
           </span>

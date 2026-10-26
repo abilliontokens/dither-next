@@ -92,7 +92,7 @@ export function DitherTimeline({
             <div className="flex items-baseline justify-between gap-2">
               <p className="text-[13px] text-foreground">{it.title}</p>
               {it.time ? (
-                <span className="shrink-0 text-[11px] tabular-nums text-muted-foreground/70">
+                <span className="shrink-0 text-[11px] tabular-nums text-muted-foreground">
                   {it.time}
                 </span>
               ) : null}

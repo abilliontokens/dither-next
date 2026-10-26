@@ -22,7 +22,7 @@ export function DitherSidebarGroup({ label, children }: DitherSidebarGroupProps)
   return (
     <div className="mt-4 first:mt-0" role="group" aria-label={label}>
       {label && !collapsed ? (
-        <div className="px-2.5 pb-1.5 text-[10px] uppercase tracking-[0.2em] text-muted-foreground/70">
+        <div className="px-2.5 pb-1.5 text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
           {label}
         </div>
       ) : label && collapsed ? (
