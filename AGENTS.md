@@ -145,13 +145,14 @@ registry, and the docs.
   2026-10 sync components were verified via tsc + build + live docs
   sections, matching the earlier canvas-component convention.
 - `cd dither-next && npm run build` succeeds; the docs route statically
-  generates one page per section id (343 deep links) plus `/` and `/studio`.
+  generates one page per section id (349 deep links) plus `/` and `/studio`.
 - `npm run dev` serves every route under Turbopack: `/`, `/studio` and all
-  343 `/docs/<section>` ids return 200, an unknown section returns 404
+  349 `/docs/<section>` ids return 200, an unknown section returns 404
   (`dynamicParams = false`). A run of webpack `next dev` instead 500s.
 - `npm run build:css` compiles `dither-kit/kit.css` →
   `public/kit/dither-kit.css` (standalone stylesheet for non-Tailwind
-  consumers).
+  consumers). `public/kit/` is gitignored build output — regenerate it,
+  never commit it.
 - The Vue app (`../dither-kit`, `../src`) is untouched by this workstream.
 
 ## Child DOX Index

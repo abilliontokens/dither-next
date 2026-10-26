@@ -22,3 +22,6 @@ yarn-error.log*
 
 # vercel
 .vercel
+
+# standalone kit stylesheet — compiled by `npm run build:css` (scripts/kit-css.mjs)
+/public/kit/

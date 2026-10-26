@@ -1,14 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 import {
   DitherAnimatedContent,
   DitherAntigravity,
+  DitherAurora,
   DitherBlobCursor,
   DitherBouncyAccordion,
   DitherCardStack,
   DitherClickSpark,
+  DitherContainer,
   DitherCrosshair,
   DitherCubes,
   DitherDock,
@@ -24,6 +26,7 @@ import {
   DitherImageTrail,
   DitherIsland,
   DitherLaserFlow,
+  DitherLayer,
   DitherLogoLoop,
   DitherMagicRings,
   DitherMagnet,
@@ -36,20 +39,30 @@ import {
   DitherPixelTrail,
   DitherPixelTransition,
   DitherPreviewRail,
+  DitherReveal,
   DitherRibbons,
   DitherScrollProgress,
+  DitherSequence,
   DitherShapeBlur,
   DitherSlideAction,
   DitherSnapButton,
   DitherSplashCursor,
+  DitherStage,
   DitherStarBorder,
   DitherStickerPeel,
   DitherStrands,
   DitherTargetCursor,
   DitherWalletCard,
+  linear,
+  quantize,
+  steps,
+  type CqScale,
+  type Keyframe,
+  type StaggerFrom,
 } from "@dither-kit";
 import { DemoCard } from "../DemoCard";
 import { PropsTable, type PropRow } from "../PropsTable";
+import styles from "./AnimationsDocs.module.css";
 
 const SHARED_CANVAS: PropRow[] = [
   { prop: "opacity", type: "number (0-1)", default: "1" },
@@ -61,7 +74,7 @@ const SHARED_CANVAS: PropRow[] = [
 
 const API: Record<string, PropRow[]> = {
   animatedContent: [
-    { prop: "distance", type: "number (px)", default: "40" },
+    { prop: "distance", type: 'number (px) | CSS length: "4cqw" rides the nearest query container', default: "40" },
     { prop: "direction", type: '"vertical" | "horizontal"', default: '"vertical"' },
     { prop: "reverse", type: "boolean", default: "false" },
     { prop: "duration", type: "number (ms)", default: "800" },
@@ -152,6 +165,7 @@ const API: Record<string, PropRow[]> = {
     { prop: "glow", type: "number", default: "1.5" },
     { prop: "mouseInteraction", type: "boolean", default: "true" },
     ...SHARED_CANVAS,
+    { prop: "frameRate", type: "number (fps, stop-motion)", default: "0 (smooth)" },
   ],
   metallicPaint: [
     { prop: "colors", type: "string[] (hex)", default: "['#1A1A22', '#8890A0', '#E8ECF4']" },
@@ -159,6 +173,7 @@ const API: Record<string, PropRow[]> = {
     { prop: "speed", type: "number", default: "0.4" },
     { prop: "distortion", type: "number", default: "0.6" },
     ...SHARED_CANVAS,
+    { prop: "frameRate", type: "number (fps, stop-motion)", default: "0 (smooth)" },
   ],
   noise: [
     { prop: "colors", type: "string[] (hex)", default: "['#3DA5FF', '#7CE0FF', '#FFFFFF']" },
@@ -166,12 +181,14 @@ const API: Record<string, PropRow[]> = {
     { prop: "density", type: "number (0-1)", default: "0.5" },
     { prop: "opacity", type: "number (0-1)", default: "1" },
     { prop: "paused", type: "boolean", default: "false" },
+    { prop: "frameRate", type: "number (fps, stop-motion)", default: "0 (smooth)" },
   ],
   cubes: [
     { prop: "colors", type: "string[] (hex)", default: "['#5227FF', '#7CFF67', '#CFFFDF']" },
     { prop: "scale", type: "number", default: "6" },
     { prop: "speed", type: "number", default: "0.4" },
     ...SHARED_CANVAS,
+    { prop: "frameRate", type: "number (fps, stop-motion)", default: "0 (smooth)" },
   ],
   ribbons: [
     { prop: "colors", type: "string[] (hex)", default: "['#5227FF', '#7CFF67', '#3DA5FF']" },
@@ -180,6 +197,7 @@ const API: Record<string, PropRow[]> = {
     { prop: "amplitude", type: "number", default: "1" },
     { prop: "mouseInteraction", type: "boolean", default: "true" },
     ...SHARED_CANVAS,
+    { prop: "frameRate", type: "number (fps, stop-motion)", default: "0 (smooth)" },
   ],
   shapeBlur: [
     { prop: "colors", type: "string[] (hex)", default: "['#5227FF', '#7CFF67']" },
@@ -187,6 +205,7 @@ const API: Record<string, PropRow[]> = {
     { prop: "softness", type: "number", default: "0.3" },
     { prop: "mouseInteraction", type: "boolean", default: "true" },
     ...SHARED_CANVAS,
+    { prop: "frameRate", type: "number (fps, stop-motion)", default: "0 (smooth)" },
   ],
   strands: [
     { prop: "colors", type: "string[] (hex)", default: "['#5227FF', '#7CE0FF']" },
@@ -194,6 +213,7 @@ const API: Record<string, PropRow[]> = {
     { prop: "sway", type: "number", default: "0.15" },
     { prop: "lineWidth", type: "number", default: "0.01" },
     ...SHARED_CANVAS,
+    { prop: "frameRate", type: "number (fps, stop-motion)", default: "0 (smooth)" },
   ],
   laserFlow: [
     { prop: "colors", type: "string[] (hex)", default: "['#FF3D2E', '#FFD23D', '#FFFFFF']" },
@@ -201,6 +221,7 @@ const API: Record<string, PropRow[]> = {
     { prop: "beamWidth", type: "number", default: "0.02" },
     { prop: "glow", type: "number", default: "1" },
     ...SHARED_CANVAS,
+    { prop: "frameRate", type: "number (fps, stop-motion)", default: "0 (smooth)" },
   ],
   antigravity: [
     { prop: "color", type: "string (hex)", default: '"#7CFF67"' },
@@ -235,6 +256,19 @@ const API: Record<string, PropRow[]> = {
     { prop: "rows", type: "number", default: "6" },
     { prop: "cols", type: "number", default: "10" },
     { prop: "color", type: "string (hex)", default: '"#111318"' },
+    { prop: "children", type: "content", default: "—" },
+  ],
+  ditherReveal: [
+    { prop: "progress", type: "number 0–1 (manual; unset plays on the clock)", default: "—" },
+    { prop: "duration", type: "number (s)", default: "1.2" },
+    { prop: "delay", type: "number (s)", default: "0" },
+    { prop: "direction", type: "'none' | 'right' | 'left' | 'down' | 'up'", default: "'none' (dissolve)" },
+    { prop: "cell", type: "number (px)", default: "4" },
+    { prop: "band", type: "number (cells; directional wipes)", default: "12" },
+    { prop: "seed", type: "number (a seeded 4×4 matrix)", default: "none (Bayer 8×8)" },
+    { prop: "reverse", type: "boolean (hide instead)", default: "false" },
+    { prop: "easing", type: "EasingInput", default: "'ease-in-out'" },
+    { prop: "restartKey", type: "unknown (change to replay)", default: "—" },
     { prop: "children", type: "content", default: "—" },
   ],
   stickerPeel: [{ prop: "children", type: "content", default: "—" }],
@@ -322,6 +356,9 @@ const API: Record<string, PropRow[]> = {
     { prop: "value", type: "string (controlled) — selected account", default: "first account" },
     { prop: "balance / change", type: "number — override the active account's numbers", default: "account data" },
     { prop: "currency", type: "string — balance prefix", default: '"$"' },
+    { prop: "defaultHidden", type: "boolean — start masked", default: "false" },
+    { prop: "searchPlaceholder", type: "string", default: '"Search…"' },
+    { prop: "recent", type: "string[] — recent queries in the search panel", default: "—" },
     { prop: "notifications", type: "boolean — unread pulse on the bell", default: "false" },
     { prop: "color", type: "PixelColor — card accent", default: '"green"' },
     { prop: "onChange", type: "(value: string)", default: "—" },
@@ -341,6 +378,55 @@ const API: Record<string, PropRow[]> = {
     { prop: "color", type: "PixelColor — icon fallback tint", default: '"blue"' },
     { prop: "onChange", type: "(expanded: boolean)", default: "—" },
     { prop: "onViewAll", type: "() — view-all pressed", default: "—" },
+  ],
+  stepTiming: [
+    { prop: "steps(n, position?)", type: "(p) => number, css-easing-1 step positions", default: '"jump-end"' },
+    { prop: "frameSteps(fps, durationMs)", type: "(p) => number, frame(fps) cadence polyfill", default: "—" },
+    { prop: "frameIndex(elapsedMs, fps)", type: "number: wall-clock frame gate for drivers", default: "—" },
+    { prop: "cssSteps(n, position?)", type: "string: one config serialized for CSS", default: '"jump-end"' },
+    { prop: "DitherAurora frameRate", type: "number (fps)", default: "0 (smooth)" },
+  ],
+  sequences: [
+    { prop: "stagger", type: "number: seconds between neighbouring children", default: "0.06" },
+    { prop: "from", type: '"start" | "center" | "end" | "edges" | literal index', default: '"start"' },
+    { prop: "duration / easing", type: "number (s per cycle) / (p) => number from timing.ts", default: "0.5 / linear" },
+    { prop: "loop / yoyo / delay", type: "number / boolean / seconds before the timeline", default: "1 / false / 0" },
+    { prop: "paused / restartOnView / frameRate", type: "boolean / boolean / fps cadence", default: "false / false / 0" },
+    { prop: "restartKey / onComplete", type: "string | number (bump rebuilds and replays) / () => void", default: "—" },
+    { prop: "planSequence(node | node[])", type: "SequencePlan: flatten serial | parallel | stagger | track once", default: "—" },
+    { prop: "sampleSequence(plan, t)", type: "TrackSample[]: { id, index, progress, raw, cycle, state }", default: "—" },
+    { prop: "staggerDelay(i, count, each, from)", type: "number: the delay wave, testable alone", default: "—" },
+  ],
+  containerQueries: [
+    { prop: "scale", type: "CqScale: Record<name, min | { min?, max? }>; min inclusive, max exclusive, order irrelevant", default: "CONTAINER_SCALE (xs 0, sm 240, md 360, lg 520, xl 720)" },
+    { prop: "step", type: "number: quantize --cq-w to this px (0 = continuous)", default: "0" },
+    { prop: "name", type: "string: native container-name for children's @container rules", default: '"dither"' },
+    { prop: "as / className", type: "element tag / passthrough class", default: '"div" / none' },
+    { prop: "children (render prop)", type: "({ width, height, size, index, matches }) => ReactNode: measured content box (what @container sees), active bucket, its ordinal, every matching bucket", default: "—" },
+    { prop: "resolveCq(width, scale?)", type: "CqState: the pure resolver (active = highest matching min)", default: "CONTAINER_SCALE" },
+    { prop: "quantize(value, step)", type: "number: nearest step, never negative; step ≤ 0 is identity", default: "—" },
+    { prop: "data-cq / --cq-w / --cq-h / --cq-i", type: "active bucket attribute + content-box width/height (raw or quantized together) + ordinal, published on the host for CSS", default: "—" },
+    { prop: "dither-cq-traverse / dither-cq-rise", type: "shipped @keyframes: translateX(±100cqw) / translateY(±100cqh); motion measured against the container (small-viewport fallback when none)", default: "—" },
+  ],
+  stage: [
+    { prop: "duration", type: "number (s): the stage clock loops over it; unset, time runs on", default: "—" },
+    { prop: "speed", type: "number: clock multiplier", default: "1" },
+    { prop: "paused / frameRate", type: "boolean / number (fps, 0 = smooth)", default: "false / 0" },
+    { prop: "restartKey", type: "unknown: change to restart from 0", default: "—" },
+    { prop: "as / className", type: "element tag / passthrough class. Give the stage a height: it is a size query container", default: '"div" / none' },
+    { prop: "children (render prop)", type: "({ time, width, height }) => ReactNode: the moment and the measured content box", default: "—" },
+    { prop: "data-stage / --cq-w / --cq-h", type: "playing | directed | paused | still, and the box for CSS", default: "—" },
+  ],
+  layer: [
+    { prop: "keyframes", type: "Keyframe[]: { at? (s or '50%'), easing?, x, y (lengths: px, %, cqw, cqh, cqi, cqb, cqmin, cqmax, vw…, calc()), rotate, skewX, skewY (angles), scale, scaleX, scaleY, opacity, ...custom numbers or lengths }", default: "[]" },
+    { prop: "duration", type: "number (s): unset, the last key's at in seconds, else 1", default: "—" },
+    { prop: "delay / loop / yoyo", type: "number (s) / number | true / boolean", default: "0 / 1 / false" },
+    { prop: "easing", type: "'linear' | 'ease-out' | 'ease-in-out' | bezier points | seed | Easing: between keys; a key's own easing wins for the segment it starts", default: "linear" },
+    { prop: "origin", type: "string: transform-origin, container units welcome", default: '"50% 50%"' },
+    { prop: "as / className", type: "element tag / class (the layer is absolute, inset 0)", default: '"div" / none' },
+    { prop: "children (render prop)", type: "(slot) => ReactNode: every property resolved to px / degrees against the stage box, plus progress, cycle, time, width, height (the state is data-layer)", default: "—" },
+    { prop: "style / data-layer", type: "transform in the keyframes' own units, opacity, --layer-p and --layer-<name> per property; before | active | done", default: "—" },
+    { prop: "sampleKeyframes(track, t), keyframeTransform(sample, box?), resolveSample(sample, box), parseLength / termsToCss / termsToPx", type: "the engine alone, for your own painters and timelines", default: "—" },
   ],
 };
 
@@ -380,6 +466,17 @@ const SNIPPETS = {
   magnetLines: `<DitherMagnetLines className="h-52" />`,
   orbitImages: `<DitherOrbitImages items={['A', 'B', 'C', 'D', 'E']} />`,
   pixelTransition: `<DitherPixelTransition><YourCard /></DitherPixelTransition>`,
+  ditherReveal: `<DitherReveal direction="right" cell={4} duration={1.4} restartKey={nonce}>
+  <YourCard />
+</DitherReveal>
+
+// or drive it from a timeline: the mask is a pure function of progress
+<DitherReveal progress={p}><YourCard /></DitherReveal>
+
+// the masks alone, for any element
+import { wipeStyle } from "@dither-kit"
+const m = wipeStyle(0.4, { cell: 4, direction: "down", width: 320, height: 180 })
+el.style.maskImage = m?.image ?? ""`,
   stickerPeel: `<DitherStickerPeel><YourCard /></DitherStickerPeel>`,
   expandTabs: `<DitherExpandTabs value={tab} onChange={setTab} tabs={[
   { value: 'home', label: 'Home' },
@@ -450,11 +547,154 @@ const SNIPPETS = {
 ]} onViewAll={openInbox} />
 {/* stacked summary → readable list on hover, focus or tap · tap pins ·
      spring fan-out with per-card stagger */}`,
+  stepTiming: `import { steps, frameSteps, frameIndex, cssSteps } from "@dither-kit"
+
+// easing-level: progress in, quantized progress out — the four positions are
+// spec-locked to css-easing-1 (jump-end | jump-start | jump-none | jump-both)
+const lattice6 = steps(6, "jump-none")   // displays both 0 and 1 — meters
+const retro = frameSteps(24, 2400)       // 24fps cadence derived from duration
+
+// one config → the CSS surface, so JS and CSS can never disagree
+el.style.animationTimingFunction = cssSteps(6, "jump-none") // "steps(6, jump-none)"
+
+// driver-level: hold the raster between wall-time frame boundaries
+const idx = frameIndex(elapsedMs, 12)    // same idx → skip the paint entirely`,
+  stepTimingAurora: `{/* the field driver's own knob: stop-motion and fewer uploads */}
+<DitherAurora />                {/* smooth, ~30fps paint throttle */}
+<DitherAurora frameRate={8} />  {/* film: paints 8×/s, holds between */}`,
+  sequences: `import { DitherSequence, planSequence, sampleSequence, steps } from "@dither-kit"
+
+{/* declarative: children wave in from the center, ping-pong x3, quantized */}
+<DitherSequence
+  stagger={0.07} from="center" duration={0.6}
+  loop={3} yoyo easing={steps(4)}
+  restartKey={key} onComplete={done}
+  className="grid grid-cols-6 gap-2"
+>
+  {Array.from({ length: 12 }, (_, i) => <div key={i} className="cell" />)}
+</DitherSequence>
+// children style themselves:  opacity: var(--seq-p, 0)
+// the driver writes that var + data-seq="before|active|done" per child
+
+// imperative: the same algebra under your own clock
+const plan = planSequence({
+  kind: "stagger", count: 12, stagger: 0.07, from: "center",
+  node: (i) => ({ kind: "track", id: String(i), duration: 0.6, loop: 3, yoyo: true }),
+})
+const samples = sampleSequence(plan, t) // [{ id, index, progress, state }, ...]`,
+  containerQueries: `import { DitherContainer, quantize } from "@dither-kit"
+
+{/* children read THIS box's width — not the viewport's */}
+<DitherContainer
+  scale={{ xs: 0, sm: 260, md: 360, lg: 450, xl: 530 }}
+  step={8}
+  name="card"
+  className="cq-card"
+>
+  {({ width, size, index }) => (
+    <>
+      <span className="readout">{size} · {width}px · q8 {quantize(width, 8)}</span>
+      <DitherSequence
+        stagger={0.03 + index * 0.02}
+        from={index >= 3 ? 'center' : 'start'}
+        restartKey={size ?? 'xs'}
+        className="cq-grid"
+      >
+        {Array.from({ length: 12 }, (_, i) => <div key={i} className="cell" />)}
+      </DitherSequence>
+    </>
+  )}
+</DitherContainer>
+
+/* stylesheet route — the same scope with zero JS: native @container */
+@container card (min-width: 520px) {
+  .readout { letter-spacing: 0.12em; }
+}
+/* motion route — shipped keyframes measure the container itself */
+.scan { animation: dither-cq-traverse 2.8s ease-in-out infinite alternate; }
+/* selector route — the engine's active bucket rides the host element */
+.cq-card[data-cq="xs"] .cell { border-color: #d9a441; }
+.cq-card[data-cq="xl"] .cell { border-color: #3f8ff3; }`,
+  stage: `<DitherStage duration={8} className="h-56">
+  <DitherLayer keyframes={[{ x: '-6cqw' }, { x: '6cqw' }]} duration={8} yoyo loop>
+    <DitherAurora className="h-full" />  {/* a canvas layer drifts 12% of the stage, at any size */}
+  </DitherLayer>
+  <DitherLayer keyframes={[{ x: 0 }, { x: '-24cqw' }]} duration={8} yoyo loop>
+    <svg viewBox="0 0 120 40" preserveAspectRatio="none"><path d="…" /></svg>  {/* SVG parallax */}
+  </DitherLayer>
+  <DitherLayer
+    keyframes={[
+      { at: 0, x: '80cqw', y: '12cqh', rotate: 0 },
+      { at: '50%', easing: 'ease-in-out', rotate: '0.5turn' },
+      { x: '20cqw', y: '8cqh', rotate: '1turn' },
+    ]}
+    duration={8} loop origin="0 0"
+  >
+    <svg …moon… />
+  </DitherLayer>
+  <DitherLayer keyframes={[{ cx: '10cqw', cy: '70cqh' }, { cx: '90cqw', cy: '40cqh' }]} duration={4} yoyo loop>
+    {/* the same keys, resolved to px for painters */}
+    {({ cx, cy }) => <svg viewBox="…"><circle cx={cx} cy={cy} r="4" /></svg>}
+  </DitherLayer>
+</DitherStage>
+
+// the engine alone
+import { sampleKeyframes, keyframeTransform, resolveSample } from "@dither-kit"
+const s = sampleKeyframes({ keyframes: [{ x: "10px" }, { x: "50cqw" }], duration: 2 }, 1)
+keyframeTransform(s)                               // "translate(calc(5px + 25cqw), 0px)"
+resolveSample(s, { width: 400, height: 200 }).x    // 105`,
 };
 
 const cardBox = "grid h-28 w-52 place-items-center rounded-lg border border-border/60 bg-card text-sm text-muted-foreground";
 const cursorArea = "grid h-40 w-full place-items-center rounded-lg border border-border/60 text-sm text-muted-foreground";
 const canvasBox = "h-64 w-full overflow-hidden rounded-lg border border-border/60";
+const toggleChip = (active: boolean) =>
+  `rounded border px-2 py-1 text-[11px] ${active ? "border-accent bg-accent/80 text-accent-foreground" : "border-border/60 text-muted-foreground hover:bg-accent/40"}`;
+const replayChip = "rounded border border-border/60 px-2 py-1 text-[11px] text-muted-foreground hover:bg-accent/40";
+const nudgeChip = "rounded border border-border/60 px-2.5 py-1 text-[11px] text-muted-foreground hover:bg-accent/40";
+
+// Dither reveal: picking a direction replays the reveal from 0.
+const REVEAL_OPTIONS = [
+  ["none", "Dissolve"],
+  ["right", "Wipe right"],
+  ["down", "Wipe down"],
+] as const;
+type RevealDirection = (typeof REVEAL_OPTIONS)[number][0];
+
+// Step timing: one keyframe run, three clocks — the stair classes swap only
+// the timing function, so the lanes differ by clock alone.
+const TIMING_LANES = [
+  { label: "linear", probe: styles.timingProbe },
+  { label: "steps(6, jump-none)", probe: `${styles.timingProbe} ${styles.stair6}` },
+  { label: "steps(3, jump-end)", probe: `${styles.timingProbe} ${styles.stair3}` },
+];
+
+// Sequence demo: control changes double as restart keys — the plan rebuilds
+// and replays whenever origin, easing or the replay nonce shifts.
+const SEQ_ORIGINS = ["start", "center", "end", "edges"] as const;
+const SEQ_STEPS = steps(4);
+const SEQ_CELLS = Array.from({ length: 12 }, (_, i) => i + 1);
+
+// Container demo: a scale small enough for all five buckets to fit the docs
+// column. The bar rides the global keyframe DitherContainer ships, so its
+// animation stays inline (a CSS module would scope the name).
+const CQ_DEMO_SCALE: CqScale = { xs: 0, sm: 260, md: 360, lg: 450, xl: 530 };
+const CQ_SCAN_STYLE = { animation: "dither-cq-traverse 2.8s ease-in-out infinite alternate" };
+
+// Stage demo tracks, hoisted so each layer compiles its track once.
+const SKY_COLORS = ["#1f6fd6", "#9ec5ff", "#ffffff"];
+const SKY_KEYS: Keyframe[] = [{ x: "-6cqw" }, { x: "6cqw" }];
+const FAR_HILL_KEYS: Keyframe[] = [{ x: 0 }, { x: "-10cqw" }];
+const NEAR_HILL_KEYS: Keyframe[] = [{ x: 0 }, { x: "-24cqw" }];
+const MOON_KEYS: Keyframe[] = [
+  { at: 0, x: "80cqw", y: "12cqh", rotate: 0 },
+  { at: "50%", easing: "ease-in-out", rotate: "0.5turn" },
+  { x: "20cqw", y: "8cqh", rotate: "1turn" },
+];
+const DOT_KEYS: Keyframe[] = [
+  { cx: "10cqw", cy: "70cqh" },
+  { cx: "90cqw", cy: "40cqh" },
+];
 
 export function AnimationsDocs() {
   const [expandTab, setExpandTab] = useState("home");
@@ -485,6 +725,26 @@ export function AnimationsDocs() {
     { value: "savings", label: "Savings", address: "0x8b21e0c4a6f9d1327e55", balance: 8210.11, change: -1.1, color: "purple" },
     { value: "trading", label: "Trading", address: "0x91cc4db2e87a30f6b214", balance: 3033.7, change: 0.6, color: "orange" },
   ];
+  const [revealDirection, setRevealDirection] = useState<RevealDirection>("none");
+  const [revealNonce, setRevealNonce] = useState(0);
+  const replayReveal = (direction: RevealDirection) => {
+    setRevealDirection(direction);
+    setRevealNonce((n) => n + 1);
+  };
+  const [seqFrom, setSeqFrom] = useState<StaggerFrom>("center");
+  const [seqQuant, setSeqQuant] = useState(false);
+  const [seqNonce, setSeqNonce] = useState(0);
+  const [stageWidth, setStageWidth] = useState(100);
+  // The container panel is a native resize box; the steppers are its keyboard
+  // path (both feed the ResizeObserver the engine listens to). DitherContainer
+  // keeps its root ref to itself, so the host is reached through a frame.
+  const cqFrame = useRef<HTMLDivElement | null>(null);
+  const nudgeCq = (delta: number) => {
+    const host = cqFrame.current?.querySelector<HTMLElement>(".dither-container");
+    if (!host) return;
+    const w = Math.round(host.getBoundingClientRect().width);
+    host.style.width = `${Math.min(580, Math.max(200, w + delta))}px`;
+  };
   return (
     <>
       {/* Animated content */}
@@ -884,6 +1144,44 @@ export function AnimationsDocs() {
         <PropsTable rows={API.pixelTransition} />
       </section>
 
+      {/* Dither reveal */}
+      <section id="dither-reveal" className="mt-16 scroll-mt-24">
+        <h2 className="text-lg tracking-tight">Dither reveal</h2>
+        <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+          Any content comes in through an ordered-dither mask. A dissolve resolves cell by cell
+          in the Bayer order; a wipe moves a solid front with a dithered band behind it. The mask
+          is a pure function of progress, so a seeked frame (the player, a video export) gets the
+          same cells every time. Pass <code className="text-foreground/80">progress</code> to
+          drive it from your own timeline.
+        </p>
+        <DemoCard code={SNIPPETS.ditherReveal}>
+          <div className="flex flex-col items-center gap-3">
+            <DitherReveal direction={revealDirection} cell={4} duration={1.4} restartKey={revealNonce} className="h-32 w-56">
+              <div className="grid h-full w-full place-items-center rounded-lg border border-border/60 bg-card">
+                <span className="text-lg tracking-tight">Revealed</span>
+              </div>
+            </DitherReveal>
+            <div className="flex flex-wrap items-center gap-2">
+              {REVEAL_OPTIONS.map(([direction, label]) => (
+                <button
+                  key={direction}
+                  type="button"
+                  className={toggleChip(revealDirection === direction)}
+                  aria-pressed={revealDirection === direction}
+                  onClick={() => replayReveal(direction)}
+                >
+                  {label}
+                </button>
+              ))}
+              <button type="button" className={replayChip} onClick={() => setRevealNonce((n) => n + 1)}>
+                Replay
+              </button>
+            </div>
+          </div>
+        </DemoCard>
+        <PropsTable rows={API.ditherReveal} />
+      </section>
+
       {/* Sticker peel */}
       <section id="sticker-peel" className="mt-16 scroll-mt-24">
         <h2 className="text-lg tracking-tight">Sticker peel</h2>
@@ -1223,6 +1521,249 @@ export function AnimationsDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.notificationStack} />
+      </section>
+
+      {/* Step timing */}
+      <section id="step-timing" className="mt-16 scroll-mt-24">
+        <h2 className="text-lg tracking-tight">Step timing</h2>
+        <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+          Quantized time for a quantized renderer: <code className="text-foreground/80">steps()</code> samples
+          progress instead of interpolating it, the temporal twin of the Bayer threshold. One keyframe run, three
+          clocks: smooth, six-step (both endpoints visible), three-step (the end value lands only on the last
+          frame).
+        </p>
+        <DemoCard code={SNIPPETS.stepTiming}>
+          <div className="grid gap-2.5">
+            {TIMING_LANES.map((lane) => (
+              <div key={lane.label} className={styles.timingLane}>
+                <span className={styles.timingTag}>{lane.label}</span>
+                <i className={`${lane.probe} bg-accent/70`} />
+              </div>
+            ))}
+          </div>
+        </DemoCard>
+        <p className="mt-3 text-[13px] leading-relaxed text-muted-foreground">
+          The kit&apos;s shared field runtime takes the same idea down at the driver layer:{" "}
+          <code className="text-foreground/80">frameRate</code> paints only on wall-time boundaries and holds the
+          raster between them: stop-motion <i>and</i> fewer buffer uploads. Two Auroras, same clock source,
+          different cadence.
+        </p>
+        <DemoCard code={SNIPPETS.stepTimingAurora}>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="overflow-hidden rounded-lg border border-border/60">
+              <p className="border-b border-border/60 bg-card/60 px-3 py-1.5 text-[12px] text-muted-foreground">Smooth</p>
+              <div className="h-36"><DitherAurora /></div>
+            </div>
+            <div className="overflow-hidden rounded-lg border border-border/60">
+              <p className="border-b border-border/60 bg-card/60 px-3 py-1.5 text-[12px] text-muted-foreground">Frame-rate 8</p>
+              <div className="h-36"><DitherAurora frameRate={8} /></div>
+            </div>
+          </div>
+        </DemoCard>
+        <PropsTable rows={API.stepTiming} />
+      </section>
+
+      {/* Sequences */}
+      <section id="sequences" className="mt-16 scroll-mt-24">
+        <h2 className="text-lg tracking-tight">Sequences</h2>
+        <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+          Many animations, one clock. The timeline algebra flattens serial chains, parallel groups, staggered
+          waves and loops into a single plan; the driver samples it and writes{" "}
+          <code className="text-foreground/80">--seq-p</code> + <code className="text-foreground/80">data-seq</code>{" "}
+          onto each child. Children style themselves, the engine only owns time. Ease with{" "}
+          <code className="text-foreground/80">steps()</code> and the whole wave quantizes.
+        </p>
+        <DemoCard code={SNIPPETS.sequences}>
+          <div className="mb-3 flex flex-wrap items-center gap-2">
+            {SEQ_ORIGINS.map((origin) => (
+              <button
+                key={origin}
+                type="button"
+                className={toggleChip(seqFrom === origin)}
+                aria-pressed={seqFrom === origin}
+                onClick={() => setSeqFrom(origin)}
+              >
+                {origin}
+              </button>
+            ))}
+            <button type="button" className={toggleChip(seqQuant)} aria-pressed={seqQuant} onClick={() => setSeqQuant((q) => !q)}>
+              {seqQuant ? "steps(4)" : "linear"}
+            </button>
+            <button type="button" className={replayChip} onClick={() => setSeqNonce((n) => n + 1)}>
+              Replay
+            </button>
+          </div>
+          <DitherSequence
+            stagger={0.07}
+            from={seqFrom}
+            duration={0.6}
+            loop={3}
+            yoyo
+            easing={seqQuant ? SEQ_STEPS : linear}
+            restartKey={`${seqFrom}|${seqQuant}|${seqNonce}`}
+            className="grid grid-cols-6 gap-2"
+          >
+            {SEQ_CELLS.map((i) => (
+              <div key={i} className={styles.seqCell}>
+                {i}
+              </div>
+            ))}
+          </DitherSequence>
+        </DemoCard>
+        <p className="mt-3 text-[13px] leading-relaxed text-muted-foreground">
+          Each cell reads only its own <code className="text-foreground/80">--seq-p</code>: rise on the forward
+          leg, sink on the yoyo leg, three cycles, settled at 1. Change the origin and the delay wave recomputes;
+          quantize and <code className="text-foreground/80">steps(4)</code> buckets the entire group into four
+          positions. Reduced motion gets the settled state with zero frames.
+        </p>
+        <PropsTable rows={API.sequences} />
+      </section>
+
+      {/* Container queries */}
+      <section id="container-queries" className="mt-16 scroll-mt-24">
+        <h2 className="text-lg tracking-tight">Container queries</h2>
+        <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+          A card in a sidebar and the same card in a wide main column are not the same card, so stop asking the
+          viewport. <code className="text-foreground/80">DitherContainer</code> makes its own box the query
+          target: it measures the content box (exactly what <code className="text-foreground/80">@container</code>{" "}
+          sees), resolves a bucket scale onto <code className="text-foreground/80">data-cq</code> +{" "}
+          <code className="text-foreground/80">--cq-w</code> / <code className="text-foreground/80">--cq-i</code>,
+          and exposes the same state through its render prop. Children restyle themselves in CSS while
+          animations re-parameterize in JS.
+        </p>
+        <DemoCard code={SNIPPETS.containerQueries}>
+          <div ref={cqFrame}>
+            <div className="mb-3 flex flex-wrap items-center gap-2">
+              <button type="button" className={nudgeChip} aria-label="Narrow the container by 40 pixels" onClick={() => nudgeCq(-40)}>
+                −
+              </button>
+              <button type="button" className={nudgeChip} aria-label="Widen the container by 40 pixels" onClick={() => nudgeCq(40)}>
+                +
+              </button>
+              <span className="text-[11px] text-muted-foreground">
+                drag the corner too: every child reads this box, never the viewport
+              </span>
+            </div>
+            <DitherContainer scale={CQ_DEMO_SCALE} step={8} name="demo" className={styles.cqPanel}>
+              {({ width, size, index, matches }) => (
+                <>
+                  <div className={styles.cqReadout}>
+                    <span className={styles.cqBucket}>{size}</span>
+                    <span>
+                      {width}px, q8 {quantize(width, 8)}, matches {matches.join(" ")}
+                    </span>
+                  </div>
+                  <DitherSequence
+                    stagger={0.03 + index * 0.02}
+                    from={index >= 3 ? "center" : "start"}
+                    restartKey={size ?? "xs"}
+                    className={styles.cqGrid}
+                  >
+                    {SEQ_CELLS.map((i) => (
+                      <div key={i} className={styles.seqCell}>
+                        {i}
+                      </div>
+                    ))}
+                  </DitherSequence>
+                  <div className={styles.cqScan} style={CQ_SCAN_STYLE} aria-hidden="true" />
+                </>
+              )}
+            </DitherContainer>
+          </div>
+        </DemoCard>
+        <p className="mt-3 text-[13px] leading-relaxed text-muted-foreground">
+          The grid re-columns purely from <code className="text-foreground/80">[data-cq]</code> (CSS reading the
+          container&apos;s own state), while the Sequence&apos;s stagger, origin and replay derive from the same
+          bucket through the render prop. Narrow it to <code className="text-foreground/80">xs</code> and the wave
+          tightens to 0.03s/cell; widen to <code className="text-foreground/80">xl</code> and it fans from the
+          center at 0.11s. <code className="text-foreground/80">quantize()</code> rounds widths to the step so
+          readouts and canvas painters hold like frames: the spatial half of the timing engine&apos;s step idea.
+          This demo overrides <code className="text-foreground/80">scale</code> so all five buckets fit the docs
+          column; the default <code className="text-foreground/80">CONTAINER_SCALE</code> targets wider shells.
+          The blue bar runs the shipped <code className="text-foreground/80">dither-cq-traverse</code> keyframe:{" "}
+          <code className="text-foreground/80">translateX(±100cqw)</code> makes its journey exactly one container
+          width, so a resize re-scales the animation live, where{" "}
+          <code className="text-foreground/80">translateX(50%)</code> would measure the bar itself and{" "}
+          <code className="text-foreground/80">vw</code> would measure the viewport.
+        </p>
+        <PropsTable rows={API.containerQueries} />
+      </section>
+
+      {/* Stage: layers in container units */}
+      <section id="stage" className="mt-16 scroll-mt-24">
+        <h2 className="text-lg tracking-tight">Stage</h2>
+        <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+          Layers in container units. A <code className="text-foreground/80">DitherStage</code> is a size query
+          container with one clock (the kit&apos;s, so it seeks for video), and each{" "}
+          <code className="text-foreground/80">DitherLayer</code> runs keyframes whose lengths keep their units
+          through interpolation: <code className="text-foreground/80">10cqw</code> to{" "}
+          <code className="text-foreground/80">30cqw</code> is <code className="text-foreground/80">20cqw</code>{" "}
+          halfway, mixed units become a <code className="text-foreground/80">calc()</code>. Canvas, SVG and DOM
+          layers move exactly relative to the stage at any size, and the same sample resolves to px through the
+          render prop for anything that paints. Shrink the stage: every path shrinks with it.
+        </p>
+        <DemoCard code={SNIPPETS.stage}>
+          <div className="mb-3 flex flex-wrap items-center gap-3 text-[11px] text-muted-foreground">
+            <label className="flex items-center gap-2">
+              stage width
+              <input
+                type="range"
+                min={40}
+                max={100}
+                step={5}
+                name="stage-width"
+                className="accent-foreground"
+                value={stageWidth}
+                onChange={(e) => setStageWidth(Number(e.target.value))}
+              />
+            </label>
+            <span className="tabular-nums">{stageWidth}%</span>
+          </div>
+          <DitherStage duration={8} className={styles.stageDemo} style={{ width: `${stageWidth}%` }}>
+            <DitherLayer keyframes={SKY_KEYS} duration={8} yoyo loop className={styles.stageSky}>
+              <DitherAurora colors={SKY_COLORS} speed={0.6} className="h-full" />
+            </DitherLayer>
+            <DitherLayer keyframes={FAR_HILL_KEYS} duration={8} yoyo loop>
+              <svg className={`${styles.stageHills} ${styles.far}`} viewBox="0 0 132 40" preserveAspectRatio="none" aria-hidden="true">
+                <path d="M0 40 V26 Q12 14 24 22 T48 18 T72 24 T96 14 T120 22 T132 18 V40 Z" />
+              </svg>
+            </DitherLayer>
+            <DitherLayer keyframes={NEAR_HILL_KEYS} duration={8} yoyo loop>
+              <svg className={`${styles.stageHills} ${styles.near}`} viewBox="0 0 148 40" preserveAspectRatio="none" aria-hidden="true">
+                <path d="M0 40 V30 Q14 22 28 30 T56 24 T84 32 T112 22 T140 30 T148 26 V40 Z" />
+              </svg>
+            </DitherLayer>
+            <DitherLayer keyframes={MOON_KEYS} duration={8} loop origin="0 0" className={styles.stageMoon}>
+              <svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true">
+                <circle cx="12" cy="12" r="10" />
+                <circle cx="9" cy="9" r="2" className={styles.crater} />
+                <circle cx="15" cy="14" r="1.5" className={styles.crater} />
+              </svg>
+            </DitherLayer>
+            <DitherLayer keyframes={DOT_KEYS} duration={4} yoyo loop>
+              {({ cx, cy, width, height }) => (
+                <svg viewBox={`0 0 ${Math.max(1, width)} ${Math.max(1, height)}`} className={styles.stageDot} aria-hidden="true">
+                  <circle cx={cx} cy={cy} r="4" />
+                  <text x={cx + 8} y={cy + 3}>
+                    {Math.round(cx)}, {Math.round(cy)}px
+                  </text>
+                </svg>
+              )}
+            </DitherLayer>
+          </DitherStage>
+        </DemoCard>
+        <p className="mt-3 text-[13px] leading-relaxed text-muted-foreground">
+          The aurora is a canvas surface riding a layer: it drifts twelve percent of the stage, never twelve
+          percent of the viewport. The two hills are SVGs on their own layers at two speeds: parallax in container
+          units. The moon places its keys with <code className="text-foreground/80">at</code> (seconds or a
+          percentage) and eases one segment. The last layer keeps custom keys,{" "}
+          <code className="text-foreground/80">cx</code> and <code className="text-foreground/80">cy</code>, which
+          the render prop hands back resolved to px against the measured box: exactly the numbers a canvas painter
+          needs. Nothing here is a CSS animation: the stage&apos;s clock samples every track, so a frame exported
+          to video lands on the same moment.
+        </p>
+        <PropsTable rows={API.stage} />
+        <PropsTable rows={API.layer} />
       </section>
     </>
   );

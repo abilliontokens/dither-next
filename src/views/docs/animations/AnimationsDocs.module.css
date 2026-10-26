@@ -1,0 +1,185 @@
+/* AnimationsDocs demo styles — port of the <style scoped> block in
+   src/pages/docs/animations/AnimationsDocs.vue (step timing, sequences,
+   container queries, stage). Colours read the app's base tokens
+   (--muted-foreground, --accent) where upstream read the --color-* aliases:
+   Tailwind v4 emits a theme alias only when something uses it, and the
+   `@theme inline` utilities never do. The container demo's
+   `dither-cq-traverse` keyframe is global (DitherContainer ships it), so its
+   `animation` stays inline in the JSX — a module would scope the name. */
+
+/* Lane chrome + the shared sweep; the two stair classes swap only the timing
+   function, so the lanes differ by clock alone. */
+.timingLane {
+  position: relative;
+  height: 1.5rem;
+  overflow: hidden;
+  border: 1px solid rgba(120, 120, 140, 0.35);
+  border-radius: 0.375rem;
+  background: rgba(255, 255, 255, 0.02);
+}
+.timingTag {
+  position: absolute;
+  left: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1;
+  font-size: 12px;
+  color: var(--muted-foreground, #8a8a99);
+  pointer-events: none;
+}
+.timingProbe {
+  position: absolute;
+  inset-block: 0;
+  left: 0;
+  width: 30%;
+  transform: translateX(-110%);
+  animation: timingSweep 2.8s linear infinite alternate;
+}
+.stair6 {
+  animation-timing-function: steps(6, jump-none);
+}
+.stair3 {
+  animation-timing-function: steps(3, jump-end);
+}
+@keyframes timingSweep {
+  from {
+    transform: translateX(-110%);
+  }
+  to {
+    transform: translateX(340%); /* 30%-wide block sweeps the whole lane */
+  }
+}
+
+/* Sequence demo cell — the driver's per-child contract: eased progress in,
+   lifecycle state as data-seq. Fallback 0 hides the cell until first paint. */
+.seqCell {
+  display: flex;
+  height: 2.75rem;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(120, 120, 140, 0.35);
+  border-radius: 0.375rem;
+  background: rgba(255, 255, 255, 0.03);
+  font-size: 10px;
+  color: var(--muted-foreground, #8a8a99);
+  opacity: var(--seq-p, 0);
+  transform: translateY(calc((1 - var(--seq-p, 0)) * 16px));
+}
+
+/* Stage demo — a size query container with an explicit height; layers keep
+   the kit's `absolute inset-0` utilities unless a class below re-places
+   them (unlayered module rules win over Tailwind's utilities layer). */
+.stageDemo {
+  height: 230px;
+  margin: 0 auto;
+  border: 1px solid rgba(120, 120, 140, 0.35);
+  border-radius: 0.5rem;
+  background: rgba(255, 255, 255, 0.02);
+  transition: width 220ms cubic-bezier(0.2, 0, 0, 1);
+}
+.stageSky {
+  inset: 0 -6cqw;
+}
+.stageHills {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 110%;
+  height: 58%;
+}
+.stageHills.far path {
+  fill: rgba(31, 111, 214, 0.35);
+}
+.stageHills.near {
+  width: 124%;
+  height: 42%;
+}
+.stageHills.near path {
+  fill: rgba(11, 26, 58, 0.95);
+}
+.stageMoon {
+  inset: auto;
+  width: 28px;
+  height: 28px;
+}
+.stageMoon circle {
+  fill: rgba(255, 255, 255, 0.85);
+}
+.stageMoon .crater {
+  fill: rgba(11, 26, 58, 0.6);
+}
+.stageDot {
+  width: 100%;
+  height: 100%;
+}
+.stageDot circle {
+  fill: var(--accent);
+}
+.stageDot text {
+  font: 10px var(--font-mono, ui-monospace, monospace);
+  fill: var(--muted-foreground);
+}
+@media (prefers-reduced-motion: reduce) {
+  .stageDemo {
+    transition: none;
+  }
+}
+
+/* Container-query demo — the host is a native resize box; children switch
+   off its [data-cq] attribute (CSS route) while the render prop drives JS. */
+.cqPanel {
+  width: 500px;
+  max-width: 100%;
+  overflow: hidden;
+  resize: horizontal; /* native corner grip; the engine's RO reports each drag */
+  border: 1px solid rgba(120, 120, 140, 0.35);
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  background: rgba(255, 255, 255, 0.02);
+}
+.cqReadout {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  font-size: 12px;
+  color: var(--muted-foreground, #8a8a99);
+}
+.cqBucket {
+  color: #3f8ff3;
+  font-weight: 600;
+}
+.cqGrid {
+  display: grid;
+  gap: 0.5rem;
+}
+/* Bucket → layout: columns come from the CONTAINER's own attribute. */
+.cqPanel[data-cq="xs"] .cqGrid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.cqPanel[data-cq="sm"] .cqGrid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.cqPanel[data-cq="md"] .cqGrid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+.cqPanel[data-cq="lg"] .cqGrid {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+.cqPanel[data-cq="xl"] .cqGrid {
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+}
+/* The extremes carry a colour marker so the attribute flip is visible. */
+.cqPanel[data-cq="xs"] .seqCell {
+  border-color: #d9a441;
+}
+.cqPanel[data-cq="xl"] .seqCell {
+  border-color: #3f8ff3;
+}
+/* Motion route: the shipped keyframe measures the container (100cqw), so
+   the bar's whole journey re-scales on every resize. */
+.cqScan {
+  height: 2px;
+  width: 28px;
+  margin-top: 0.5rem;
+  background: #3f8ff3;
+}

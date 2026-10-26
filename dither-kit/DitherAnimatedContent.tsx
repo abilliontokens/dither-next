@@ -7,7 +7,7 @@ import { pixelPrefersReducedMotion } from "./pixel";
 import styles from "./DitherAnimatedContent.module.css";
 
 export interface DitherAnimatedContentProps {
-  distance?: number;
+  distance?: number | string;
   direction?: "vertical" | "horizontal";
   reverse?: boolean;
   duration?: number;
@@ -36,8 +36,17 @@ export function DitherAnimatedContent({
   const [shown, setShown] = useState(false);
 
   const hidden = useMemo(() => {
-    const d = distance * (reverse ? -1 : 1);
-    return direction === "horizontal" ? `translateX(${d}px)` : `translateY(${d}px)`;
+    // Offsets are signed: numbers are px; strings pass through as CSS lengths
+    // with the sign flipped for `reverse` (`"4cqh"` → `"-4cqh"`).
+    let offset: string;
+    if (typeof distance === "number") {
+      offset = `${distance * (reverse ? -1 : 1)}px`;
+    } else {
+      const negative = distance.startsWith("-") !== reverse;
+      const body = distance.startsWith("-") ? distance.slice(1) : distance;
+      offset = negative ? `-${body}` : body;
+    }
+    return direction === "horizontal" ? `translateX(${offset})` : `translateY(${offset})`;
   }, [distance, direction, reverse]);
 
   useEffect(() => {
