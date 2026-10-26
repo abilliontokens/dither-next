@@ -101,7 +101,9 @@ export interface DitherImageProps {
  * React port of `DitherImage.vue`. The Vue `nextTick` deferrals become
  * `useEffect`/`setTimeout` (guide §7 — generic defer). Static mode disables
  * resize observation; live mode observes resize so the dither tracks its
- * container. `willReadFrequently: true` on the context (it calls
+ * container. The `src` fetch waits until the frame nears the viewport
+ * (IntersectionObserver, 400px rootMargin; eager when the observer or the
+ * element is missing). `willReadFrequently: true` on the context (it calls
  * `getImageData`/`putImageData`). The `restartToken` guards against stale
  * closures firing after a prop change.
  */
@@ -162,7 +164,8 @@ export function DitherImage({
   })
   paintState.current = { cell: effCell, focusY: effFocusY, matrix, maxCols: effMaxCols, maxRows: effMaxRows, fade: effFade }
 
-  // Runtime effect: load the image + (live) observe resize.
+  // Runtime effect: (live) observe resize + load the image as it nears the
+  // viewport.
   useEffect(() => {
     if (precompiled) return
     const wrap = wrapRef.current
@@ -172,6 +175,7 @@ export function DitherImage({
 
     const token = ++restartToken.current
     let ro: ResizeObserver | null = null
+    let io: IntersectionObserver | null = null
 
     const paint = () => {
       const w = wrap
@@ -194,18 +198,43 @@ export function DitherImage({
     }
 
     const onImgLoad = () => paint()
-    img.addEventListener("load", onImgLoad)
+    // Vue's `load()`: wire the repaint, then request the source.
+    const load = () => {
+      img.addEventListener("load", onImgLoad)
+      if (img.src !== src) img.src = src
+      else if (img.complete) paint()
+    }
 
-    // Defer the load kick to the next tick (Vue used nextTick; guide §7 maps a
+    // Defer the start to the next tick (Vue used nextTick; guide §7 maps a
     // generic defer to useEffect, and the setTimeout(0) mirrors the Vue
     // `nextTick` queue flush).
     const timer = window.setTimeout(() => {
       if (token !== restartToken.current || precompiled) return
-      if (img.src !== src) img.src = src
-      else if (img.complete) paint()
       if (renderMode !== "static" && typeof ResizeObserver !== "undefined") {
         ro = new ResizeObserver(paint)
         if (wrapRef.current) ro.observe(wrapRef.current)
+      }
+      // Fetch the source only as the frame approaches the viewport: the eager
+      // load pulled a multi-hundred-KB sheet at mount on pages where the image
+      // sits far below the fold. Falls back to the old eager load when the
+      // observer is unavailable or the element never mounts.
+      if (typeof IntersectionObserver !== "undefined" && wrapRef.current) {
+        io = new IntersectionObserver(
+          (entries) => {
+            // A delivery queued before this run's cleanup must not load its
+            // (stale) `src` closure.
+            if (token !== restartToken.current) return
+            if (entries.some((e) => e.isIntersecting)) {
+              io?.disconnect()
+              io = null
+              load()
+            }
+          },
+          { rootMargin: "400px" }
+        )
+        io.observe(wrapRef.current)
+      } else {
+        load()
       }
     })
 
@@ -215,6 +244,8 @@ export function DitherImage({
       img.removeEventListener("load", onImgLoad)
       ro?.disconnect()
       ro = null
+      io?.disconnect()
+      io = null
     }
   }, [src, precompiled, renderMode, seed])
 

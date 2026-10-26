@@ -33,12 +33,25 @@ export function DitherScrollReveal({
         Math.max(0, Math.min(1, 1 - (r.top - vh * 0.2) / (vh * 0.55))),
       );
     };
-    window.addEventListener("scroll", update, { passive: true });
-    window.addEventListener("resize", update);
-    update();
+    // Measure once per frame at the latest: the initial call lands with the
+    // next frame, and scrolling never forces layout more than once per frame —
+    // a direct call during mount measured the whole document while it was
+    // still dirty.
+    let pending = 0;
+    const schedule = () => {
+      if (pending) return;
+      pending = requestAnimationFrame(() => {
+        pending = 0;
+        update();
+      });
+    };
+    window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("resize", schedule);
+    schedule();
     return () => {
-      window.removeEventListener("scroll", update);
-      window.removeEventListener("resize", update);
+      if (pending) cancelAnimationFrame(pending);
+      window.removeEventListener("scroll", schedule);
+      window.removeEventListener("resize", schedule);
     };
   }, []);
 

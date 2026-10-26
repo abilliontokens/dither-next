@@ -26,6 +26,7 @@ import {
 } from "./dither-paint"
 import { rgb } from "./palette"
 import { clearRasterBuffer, createRasterBuffer, putRasterBuffer } from "./raster"
+import { directedTime, isDirected, onSeek } from "./clock"
 
 type Star = { key: string; xi: number; depth: number; phase: number }
 type Surface = { top: number[]; floor: number[] }
@@ -143,13 +144,15 @@ function startCartesianLoop({
   let lastSelected: string | null | undefined = Symbol() as never
   let lastMarker: number | null | undefined = Symbol() as never
   let lastCrosshair: boolean | undefined
+  // Directed (clock.ts): no frames are requested; `draw(ms)` paints the
+  // moment and the entrance runs from composition time 0.
   const schedule = () => {
-    if (!raf && visible()) raf = requestAnimationFrame(draw)
+    if (!raf && visible() && !isDirected()) raf = requestAnimationFrame(draw)
   }
 
   const draw = (now: number) => {
     raf = 0
-    if (!visible()) return // off-screen: pause until useCanvasVisibility wakes it
+    if (!visible() && !isDirected()) return // off-screen: pause until useCanvasVisibility wakes it
     const s = state.current
     if (!s.ready) return
     const tgt = targets.current
@@ -171,8 +174,9 @@ function startCartesianLoop({
       needsFill = true
     }
     if (!animStart) animStart = now
+    const origin = isDirected() ? 0 : animStart
     const prog = animate
-      ? Math.min(1, Math.max(0, (now - animStart - s.animationDelay) / duration))
+      ? Math.min(1, Math.max(0, (now - origin - s.animationDelay) / duration))
       : 1
     const progChanged = prog !== lastProg
     if (prog >= 1 && !entranceReported) {
@@ -227,8 +231,9 @@ function startCartesianLoop({
 
     const marker = s.hoverIndex != null ? s.hoverIndex : s.markerIndex
     const sparkleMotion = s.sparkles && !reduce
-    const winkDue =
-      sparkleMotion && now - last >= 100 / Math.max(0.1, s.sparkleSpeed)
+    const winkPeriod = 100 / Math.max(0.1, s.sparkleSpeed)
+    const winkTick = isDirected() ? Math.floor(now / winkPeriod) : tick + 1
+    const winkDue = sparkleMotion && (isDirected() ? winkTick !== tick : now - last >= winkPeriod)
     const paintSig = `${s.stackType}|${s.dimOpacity}|${JSON.stringify(s.configKeys.map((k) => [k, s.config[k]?.color, s.seriesSpecs[k]]))}`
     const bloomSig = `${s.bloom}|${s.bloomOnHover}|${s.isMouseInChart}|${s.hovered}`
     const sigChanged = paintSig !== lastPaintSig
@@ -255,7 +260,7 @@ function startCartesianLoop({
     }
     if (winkDue) {
       last = now
-      tick += 1
+      tick = winkTick
     }
 
     const reveal = animate ? resolveEasing(s.easing)(prog) : 1
@@ -365,12 +370,21 @@ function startCartesianLoop({
     if (sparkleMotion || (animate && !entranceReported) || moving || settling) schedule()
   }
 
-  if (visible()) schedule()
+  const paintDirected = (ms: number) => {
+    if (raf) cancelAnimationFrame(raf)
+    raf = 0
+    draw(ms)
+  }
+  const unseek = onSeek((ms) => (ms === null ? schedule() : paintDirected(ms)))
+  if (isDirected()) paintDirected(directedTime() ?? 0)
+  else if (visible()) schedule()
   return {
-    stop: () => cancelAnimationFrame(raf),
-    wake: () => {
-      schedule()
+    stop: () => {
+      cancelAnimationFrame(raf)
+      unseek()
     },
+    // A wake under direction (ready flipped, data changed) repaints the moment.
+    wake: () => (isDirected() ? paintDirected(directedTime() ?? 0) : schedule()),
   }
 }
 
@@ -479,13 +493,21 @@ export function CartesianCanvas() {
     return out
   }, [backing.cols, ctx.sparkleDensity, ctx.configKeys, ctx.seed, ctx.dataLength])
 
-  // Stable boxes the loop reads each frame.
-  const stateBox: Box<ChartContextValue> = { current: ctx }
-  const targetsBox: Box<Record<string, Surface>> = { current: targets }
-  const starsBox: Box<Star[]> = { current: stars }
-  const sparkBox: Box<typeof spark> = { get current() { return spark } }
-  const effectBox: Box<typeof effect> = { get current() { return effect } }
-  const glyphBox: Box<Glyph> = { get current() { return glyph } }
+  // Stable boxes the loop reads each frame — refs refreshed every render, so
+  // the running loop always sees the latest ctx and derived surfaces without
+  // a restart.
+  const stateBox = useRef(ctx)
+  stateBox.current = ctx
+  const targetsBox = useRef(targets)
+  targetsBox.current = targets
+  const starsBox = useRef(stars)
+  starsBox.current = stars
+  const sparkBox = useRef(spark)
+  sparkBox.current = spark
+  const effectBox = useRef(effect)
+  effectBox.current = effect
+  const glyphBox = useRef(glyph)
+  glyphBox.current = glyph
 
   const restart = useCallback(() => {
     loopRef.current?.stop()

@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { CONTROL_BUTTON } from "./control";
 import { cssColor } from "./palette";
 import type { PixelColor } from "./pixel";
-import { cn } from "./lib";
+import { cn, copyText } from "./lib";
 import { usePresence } from "./use-presence";
 import styles from "./DitherWalletCard.module.css";
 
@@ -155,14 +155,12 @@ export function DitherWalletCard({
     onSubmit?.(final);
   }
 
+  // lib.ts's copyText: the async clipboard where it exists, else the
+  // selection path (plain http, older engines, automation).
   async function copy(): Promise<void> {
-    try {
-      await navigator.clipboard.writeText(account?.address ?? "");
-      setCopied(true);
-      window.setTimeout(() => setCopied(false), 1400);
-    } catch {
-      setCopied(false);
-    }
+    const ok = await copyText(account?.address ?? "");
+    setCopied(ok);
+    if (ok) window.setTimeout(() => setCopied(false), 1400);
   }
 
   const switcherPresent = usePresence(switching, 160);
