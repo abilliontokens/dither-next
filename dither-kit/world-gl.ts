@@ -128,7 +128,7 @@ export function createWorldGpu(shared?: GlHandle): WorldGpu {
   let problem = ""
   let pixels: Uint8Array = new Uint8Array(0)
   let uvPixels = new Uint8Array(0)
-  const buffers = new WeakMap<WorldMesh, Buffers>()
+  let buffers = new WeakMap<WorldMesh, Buffers>()
   const uniforms: Record<string, WebGLUniformLocation | null> = {}
   // WebGL2 draws into its own framebuffer: the target and the uv map side by side.
   let fbo: WebGLFramebuffer | null = null
@@ -136,6 +136,7 @@ export function createWorldGpu(shared?: GlHandle): WorldGpu {
   let fboDepth: WebGLRenderbuffer | null = null
   let fboW = 0
   let fboH = 0
+  let epoch = 0
 
   /** Bind the two-attachment framebuffer (WebGL2), sized to the target; false on WebGL1 or when it cannot complete. */
   const bindOutput = (gl: Gl, webgl2: boolean, cols: number, rows: number): boolean => {
@@ -178,6 +179,17 @@ export function createWorldGpu(shared?: GlHandle): WorldGpu {
     }
     if (!handle || handle.lost()) return null
     const gl = handle.gl
+    if (epoch !== handle.epoch()) {
+      // A restored context invalidated every object made before it: rebuild.
+      epoch = handle.epoch()
+      program = null
+      buffers = new WeakMap()
+      fbo = null
+      fboTex = []
+      fboDepth = null
+      fboW = 0
+      fboH = 0
+    }
     if (!program) {
       if (
         !handle.webgl2 &&
@@ -446,6 +458,7 @@ export function createWorldMaterial(shared?: GlHandle): WorldMaterial {
   let packed: Uint8Array = new Uint8Array(0)
   let packedUv: Uint8Array = new Uint8Array(0)
   let pixels: Uint8Array = new Uint8Array(0)
+  let epoch = 0
   const palette = new Uint8Array(256 * 4)
   const uniforms: Record<string, WebGLUniformLocation | null> = {}
 
@@ -467,6 +480,16 @@ export function createWorldMaterial(shared?: GlHandle): WorldMaterial {
     }
     if (!handle || handle.lost()) return null
     const gl = handle.gl
+    if (epoch !== handle.epoch()) {
+      // A restored context invalidated every object made before it: rebuild.
+      epoch = handle.epoch()
+      program = null
+      compiled = null
+      quad = null
+      targetTex = null
+      paletteTex = null
+      uvTex = null
+    }
     if (compiled !== source) {
       if (program) gl.deleteProgram(program)
       program = null

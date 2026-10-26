@@ -5,6 +5,8 @@ import { act } from "react"
 import {
   DitherBadge,
   DitherButton,
+  DitherColorPicker,
+  DitherImageCropper,
   DitherCheckbox,
   DitherDialog,
   DitherField,
@@ -51,6 +53,56 @@ describe("DitherButton", () => {
     expect(button).toHaveAttribute("type", "submit")
     expect(button).toBeDisabled()
     expect(button).toHaveAttribute("aria-busy", "true")
+  })
+  it("renders a link through Base UI composition without a native button", () => {
+    render(
+      <DitherButton nativeButton={false} role="link" render={<a href="/signup" />}>
+        Sign up
+      </DitherButton>,
+    )
+    const link = screen.getByRole("link", { name: "Sign up" })
+    expect(link.tagName).toBe("A")
+    expect(link).toHaveAttribute("href", "/signup")
+    expect(link).not.toHaveAttribute("type")
+  })
+})
+
+describe("DitherColorPicker", () => {
+  it("ignores hue arrow keys and leaves the tab order while disabled", () => {
+    const onChange = vi.fn()
+    render(<DitherColorPicker value="#ff0000" disabled onChange={onChange} />)
+    const hue = screen.getByRole("slider", { name: "Hue" })
+    expect(hue).toHaveAttribute("tabindex", "-1")
+    fireEvent.keyDown(hue, { key: "ArrowRight" })
+    fireEvent.keyDown(hue, { key: "ArrowLeft" })
+    expect(onChange).not.toHaveBeenCalled()
+  })
+})
+
+describe("DitherImageCropper", () => {
+  it("locks the crop to the requested pixel ratio in a non-square container", () => {
+    // 400x300 container: a 16:9 pixel crop is width/height = 16/9 * 3/4 = 4/3 in rect space.
+    const rectSpy = vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockReturnValue({
+      x: 0, y: 0, left: 0, top: 0, right: 400, bottom: 300, width: 400, height: 300, toJSON: () => ({}),
+    } as DOMRect)
+    const onChange = vi.fn()
+    const { container } = render(
+      <DitherImageCropper
+        src="data:image/gif;base64,R0lGODlhAQABAAAAACw="
+        aspect={16 / 9}
+        defaultRect={{ x: 0.1, y: 0.1, width: 0.4, height: 0.3 }}
+        onChange={onChange}
+      />,
+    )
+    const handle = within(container).getByRole("button", { name: "Resize se", hidden: true })
+    HTMLElement.prototype.setPointerCapture ??= () => {}
+    HTMLElement.prototype.releasePointerCapture ??= () => {}
+    fireEvent.pointerDown(handle!, { clientX: 200, clientY: 120, pointerId: 1, button: 0, pointerType: "mouse" })
+    fireEvent.pointerMove(handle!, { clientX: 240, clientY: 150, pointerId: 1, pointerType: "mouse" })
+    rectSpy.mockRestore()
+    const last = onChange.mock.calls.at(-1)?.[0]
+    expect(last).toBeDefined()
+    expect((last.width * 400) / (last.height * 300)).toBeCloseTo(16 / 9, 5)
   })
 })
 

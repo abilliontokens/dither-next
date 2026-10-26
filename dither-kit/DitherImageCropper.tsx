@@ -433,12 +433,15 @@ export const DitherImageCropper = forwardRef<
     const d = dragRef.current;
     if (!d || d.kind !== "resize" || !d.handle) return;
     const { dx, dy } = rectDelta(e);
-    const next = resizeCrop(d.handle, d.start, dx, dy, aspect, minSize);
     if (aspect > 0) {
-      const constrained = { ...next, height: next.width / aspect };
-      commit(clampRect(constrained, minSize));
+      // The rect is normalised per axis, so a pixel ratio of `aspect` is
+      // width/height = aspect * containerHeight / containerWidth in rect space.
+      const r = rootRef.current!.getBoundingClientRect();
+      const ratio = (aspect * Math.max(1, r.height)) / Math.max(1, r.width);
+      const next = resizeCrop(d.handle, d.start, dx, dy, ratio, minSize);
+      commit(clampRect({ ...next, height: next.width / ratio }, minSize));
     } else {
-      commit(next);
+      commit(resizeCrop(d.handle, d.start, dx, dy, 0, minSize));
     }
   }
   function onHandlePointerUp(e: ReactPointerEvent<HTMLButtonElement>): void {

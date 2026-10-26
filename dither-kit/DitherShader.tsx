@@ -93,6 +93,8 @@ type Gpu = {
   locations: Partial<Record<(typeof SHADER_UNIFORMS)[number], WebGLUniformLocation | null>>;
   channelSet: Channels | null;
   pixels: Uint8Array;
+  /** The context epoch the program was built under. */
+  epoch: number;
 };
 
 export function DitherShader({
@@ -182,6 +184,7 @@ export function DitherShader({
     locations: {},
     channelSet: null,
     pixels: new Uint8Array(0),
+    epoch: 0,
   });
   const mouseRef = useRef({ x: 0, y: 0, cx: 0, cy: 0, down: false });
 
@@ -239,6 +242,13 @@ export function DitherShader({
       buffer.data.fill(0);
       if (status === "ready") setStatus("unsupported");
       return;
+    }
+    if (gpu.epoch !== handle.epoch()) {
+      // A restored context invalidated the program and its buffers: recompile.
+      gpu.epoch = handle.epoch();
+      gpu.program = null;
+      gpu.compiled = null;
+      gpu.locations = {};
     }
     if (!code) {
       buffer.data.fill(0);

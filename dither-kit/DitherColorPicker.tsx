@@ -154,6 +154,7 @@ export function DitherColorPicker({
   }
 
   function onHueKeyDown(e: KeyboardEvent<HTMLDivElement>): void {
+    if (disabled) return;
     const step = 1 + (e.shiftKey ? 15 : 0);
     if (e.key === "ArrowLeft") {
       e.preventDefault();
@@ -176,7 +177,7 @@ export function DitherColorPicker({
       <div
         ref={planeEl}
         role="slider"
-        tabIndex={0}
+        tabIndex={disabled ? -1 : 0}
         aria-label="Saturation and brightness"
         aria-valuetext={value}
         aria-disabled={disabled || undefined}
@@ -196,7 +197,7 @@ export function DitherColorPicker({
       <div
         ref={hueEl}
         role="slider"
-        tabIndex={0}
+        tabIndex={disabled ? -1 : 0}
         aria-label="Hue"
         aria-valuemin={0}
         aria-valuemax={360}

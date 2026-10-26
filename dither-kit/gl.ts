@@ -28,6 +28,10 @@ export type GlHandle = {
   webgl2: boolean
   /** True after `webglcontextlost` until the context is restored. */
   lost: () => boolean
+  /** Bumped on every `webglcontextrestored`. Every program, buffer, texture
+   * and framebuffer made before a restore is dead: consumers compare this to
+   * the epoch they built under and rebuild on change. */
+  epoch: () => number
   /** Resize the drawing buffer (no-op when unchanged). */
   size: (width: number, height: number) => void
   /** Read the whole framebuffer (RGBA, rows bottom-up) into `out`, reallocating it as needed. */
@@ -54,18 +58,21 @@ export function createGl(): GlHandle | null {
   const gl: Gl | null = gl2 ?? (canvas.getContext("webgl", ATTRS) as WebGLRenderingContext | null)
   if (!gl) return null
   let lost = false
+  let epoch = 0
   canvas.addEventListener("webglcontextlost", (e) => {
     e.preventDefault()
     lost = true
   })
   canvas.addEventListener("webglcontextrestored", () => {
     lost = false
+    epoch++
   })
   return {
     canvas,
     gl,
     webgl2: !!gl2,
     lost: () => lost,
+    epoch: () => epoch,
     size(width, height) {
       if (canvas.width !== width || canvas.height !== height) {
         canvas.width = width
@@ -158,8 +165,14 @@ export type Channels = {
 export function createChannels(h: GlHandle): Channels {
   const gl = h.gl
   const slots = [0, 1, 2, 3].map(() => ({ tex: null as WebGLTexture | null, version: -1, w: 0, h: 0 }))
+  let epoch = h.epoch()
   return {
     upload(inputs, first, t, ms) {
+      if (epoch !== h.epoch()) {
+        // Textures from before a context restore are gone; recreate on demand.
+        epoch = h.epoch()
+        for (const slot of slots) slot.tex = null
+      }
       const res = new Float32Array(12)
       const times = new Float32Array(4)
       for (let i = 0; i < 4; i++) {
